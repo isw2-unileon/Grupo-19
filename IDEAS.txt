@@ -1,0 +1,31 @@
+1. Monitor Personal de "Suscripciones Fantasma"
+
+El problema: Con el auge del modelo de suscripción (streaming, gimnasios, software, entregas a domicilio), es muy fácil perder el hilo de cuánto gastamos y, sobre todo, de cuándo terminan los periodos de prueba.
+
+La idea: Un backend que analice tus facturas (vía PDF o emails, manteniendo la privacidad) y genere un calendario dinámico de pagos. No solo te avisa de que te van a cobrar, sino que te permite proyectar cuánto ahorrarías si cancelas X o Y servicio.
+
+    Por qué Go: Go es extremadamente rápido procesando archivos (como PDFs o CSVs de bancos) y realizando cálculos financieros en milisegundos. Además, su seguridad nativa es un punto a favor para manejar datos sensibles.
+
+    Impacto: Ayuda a la salud financiera personal y evita cobros no deseados.
+
+
+2. "La Biblioteca de las Cosas" (Alquiler/Préstamo de Barrio)
+
+El problema: Todos tenemos un taladro, una escalera o una fondue que usamos una vez al año y el resto del tiempo ocupa espacio. Comprar estas cosas individualmente es ineficiente y caro.
+
+La idea: Un backend para gestionar inventarios compartidos en comunidades o edificios. Permite registrar objetos, gestionar reservas por franjas horarias y llevar un control de quién tiene qué.
+
+    Por qué Go: Es perfecto para manejar la lógica de "calendarios concurrentes" (evitar que dos personas reserven lo mismo al mismo tiempo) y enviar recordatorios automáticos mediante procesos ligeros (goroutines).
+
+    Valor real: Ahorro de espacio en casa, ahorro de dinero y reducción del consumo innecesario.
+
+
+3. Mapa Comunitario de "Barreras de Accesibilidad"
+
+El problema: Las personas con movilidad reducida, carritos de bebé o ancianos se encuentran con ascensores de metro rotos, obras en aceras o rampas mal diseñadas que no aparecen en Google Maps porque son incidencias temporales o muy locales.
+
+La idea: Una plataforma donde los ciudadanos reportan en tiempo real obstáculos urbanos. El backend procesa estos incidentes, les asigna una duración estimada y genera una capa de datos que otros usuarios pueden consultar para planificar rutas sin sorpresas.
+
+    Por qué Go: Ideal para procesar un flujo constante de coordenadas geográficas y notificar a los usuarios que están cerca de una nueva barrera mediante geofencing. La velocidad de Go permite que el mapa esté siempre actualizado sin latencia.
+
+    Impacto: Mejora drásticamente la autonomía de personas con dificultades de movilidad.
