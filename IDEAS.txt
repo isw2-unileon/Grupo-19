@@ -29,3 +29,12 @@ La idea: Una plataforma donde los ciudadanos reportan en tiempo real obstáculos
     Por qué Go: Ideal para procesar un flujo constante de coordenadas geográficas y notificar a los usuarios que están cerca de una nueva barrera mediante geofencing. La velocidad de Go permite que el mapa esté siempre actualizado sin latencia.
 
     Impacto: Mejora drásticamente la autonomía de personas con dificultades de movilidad.
+
+4. Monitor de Precios de E-commerce
+Una aplicación que rastrea productos en sitios como Amazon, Mercado Libre o eBay y te avisa cuando bajan de precio.
+
+Cómo funciona: El programa hace "scraping" o usa APIs cada cierto tiempo.
+
+Toque Go: Usa Goroutines para revisar 50 productos al mismo tiempo sin que el programa se bloquee.
+
+Notificación: Puedes integrar un bot de Telegram para que te envíe el enlace directo cuando detecte una oferta.
