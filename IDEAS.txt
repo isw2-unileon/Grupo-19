@@ -9,15 +9,25 @@ La idea: Un backend que analice tus facturas (vía PDF o emails, manteniendo la 
     Impacto: Ayuda a la salud financiera personal y evita cobros no deseados.
 
 
-2. "La Biblioteca de las Cosas" (Alquiler/Préstamo de Barrio)
 
-El problema: Todos tenemos un taladro, una escalera o una fondue que usamos una vez al año y el resto del tiempo ocupa espacio. Comprar estas cosas individualmente es ineficiente y caro.
 
-La idea: Un backend para gestionar inventarios compartidos en comunidades o edificios. Permite crear comunidades o grupos, añadir y eliminar gente, registrar objetos, gestionar reservas por franjas horarias y llevar un control de quién tiene qué.
 
-    Por qué Go: Es perfecto para manejar la lógica de "calendarios concurrentes" (evitar que dos personas reserven lo mismo al mismo tiempo) y enviar recordatorios automáticos mediante procesos ligeros (goroutines).
 
-    Valor real: Ahorro de espacio en casa, ahorro de dinero y reducción del consumo innecesario.
+
+2. El problema: Cualquier grupo de personas (compañeros de piso, un departamento universitario, una oficina o una comunidad de vecinos) comparte recursos de uso ocasional o planificado. Coordinar quién usa qué y en qué momento mediante mensajes informales genera conflictos de horarios, reservas duplicadas, pérdida de objetos o fricciones organizativas.
+
+La idea: Un backend flexible diseñado para gestionar inventarios y reservas divididos en múltiples "Entornos" o "Espacios" aislados.
+
+    Multientorno: Un usuario puede pertenecer a varios grupos a la vez. Por ejemplo, tener un entorno llamado "Piso" (para reservar el horno el sábado), otro llamado "Laboratorio de Química" (para equipos de medición) y otro "Comunidad" (para herramientas).
+
+    Gestión granular: Cada espacio tiene sus propios administradores, miembros, catálogo de objetos y reglas de préstamo adaptables (reservas por horas, por días, con o sin necesidad de aprobación previa).
+
+    Trazabilidad y estados: Historial en tiempo real de quién tiene cada recurso, en qué estado se encuentra (disponible, en uso, averiado/en mantenimiento) y cuándo debe ser devuelto.
+
+
+
+
+
 
 
 3. Mapa Comunitario de "Barreras de Accesibilidad"
