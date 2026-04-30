@@ -1,4 +1,4 @@
-.PHONY: install run-backend run-frontend build-backend build-frontend test lint e2e
+.PHONY: install run-backend run-frontend build-backend build-frontend test lint e2e db-up db-down
 
 ## Install all dependencies
 install:
@@ -37,3 +37,11 @@ lint:
 ## Run E2E tests (requires backend + frontend running)
 e2e:
 	cd e2e && npx playwright test
+
+## Turn on local data base with Docker
+db-up:
+	docker compose up -d
+
+## Turn off local data base with Docker
+db-down:
+	docker compose down
