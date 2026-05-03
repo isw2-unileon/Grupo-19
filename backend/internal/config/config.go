@@ -19,7 +19,7 @@ func Load() *Config {
 		GinMode:         getEnv("GIN_MODE", "debug"),
 		CORSAllowOrigin: getEnv("CORS_ALLOW_ORIGIN", "*"),
 
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://admin:secretpassword@localhost:5432/rastreador_precios?sslmode=disable"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://admin:secretpassword@db:5432/rastreador_precios?sslmode=disable"),
 	}
 }
 

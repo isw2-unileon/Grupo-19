@@ -11,7 +11,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	// Internal packets import
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 )
 
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -19,8 +23,25 @@ var logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 func main() {
 	ctx := context.Background()
 
+	// 1. Load configuration
 	cfg := config.Load()
 
+	// 2. PostgreSQL conection and table migration
+	database.Connect(cfg.DatabaseURL)
+
+	err := database.DB.AutoMigrate(
+		&models.User{},
+		&models.Product{},
+		&models.Tracking{},
+		&models.PriceHistory{},
+	)
+	if err != nil {
+		logger.Error("Error al migrar la base de datos", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("Tablas sincronizadas correctamente en PostgreSQL")
+
+	// 3. Web service configuration
 	gin.SetMode(cfg.GinMode)
 
 	r := gin.New()
