@@ -15,6 +15,7 @@ import (
 	// Internal packets import
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/handlers"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 )
 
@@ -55,6 +56,8 @@ func main() {
 	api.GET("/hello", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
 	})
+
+	api.POST("/track", handlers.AddProduct)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
