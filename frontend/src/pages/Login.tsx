@@ -7,9 +7,27 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (
+    e: React.FormEvent,
+    isLogin: boolean,
+    name: string,
+    confirmPassword: string
+  ) => {
     e.preventDefault();
-    console.log({ email, password });
+
+    if (isLogin) {
+      // TODO: Cuando conectemos el backend, aquí irá el código de LOGIN
+      console.log("Datos para LOGIN:", { email, password });
+    } else {
+      // Basic password validation
+      if (password !== confirmPassword) {
+        alert("Las contraseñas no coinciden");
+        return;
+      }
+
+      // TODO: Cuando conectemos el backend, aquí irá el código de REGISTRO
+      console.log("Datos para REGISTRO:", { name, email, password });
+    }
   };
 
   return (
