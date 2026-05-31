@@ -1,5 +1,37 @@
 package scraper
 
+/*
+Funciona en:
+	Amazon
+	PcComponentes
+	Mediamarkt
+	CoolMod
+	Game
+	Neobyte
+	Pcbox
+	Nike
+	Worten (-Titulo, Ir a ver titulo para posible solucion)
+	La casa del libro
+	Tradeinn
+	Drunni
+	Primor
+	Kave Home
+No Funciona en:
+	(El html se genera una vez el usuario carga la pagina por lo que no existe un html de donde se pueda sacar el precio sin el uso de herramientas extenas
+	como pupeteer que permited el uso de una navegador web invisible, el problema es el alto consumo de recusrsos que pide para hacer esto)
+	Zara (o cualquier web del grupo inditex)
+	El corte Ingles
+	Mango
+	(El codigo no logra acceder a la pagina por bloqueos y devulve un error 403 o una pagina en blanco)
+	Inditex
+	fnac
+	adidas
+	Decathlon
+	(Webs en la que el precio que se ofrece depende por perfil)
+	Aliexpress
+	Temu
+Puede fallar el codigo por bloqueos de paginas o conexiones (Gracias Tebas)
+*/
 import (
 	"fmt"
 	"net/http"
@@ -64,37 +96,23 @@ func Extract(targetURL string) (*ProductData, error) {
 
 	// Titulo
 	if title, exists := doc.Find("meta[property='og:title']").Attr("content"); exists && title != "" {
-		product.Title = title
+		product.Title = strings.TrimSpace(title)
+	} else if title, exists := doc.Find("meta[name='og:title']").Attr("content"); exists && title != "" { // Worten (No funciona el titulo unicamente, dar opcion al usuario de poner el titulo que quiera)
+		product.Title = strings.TrimSpace(strings.ReplaceAll(title, " | Worten.es", ""))
 	} else if title := doc.Find("#productTitle").Text(); title != "" { // Amazon
-		product.Title = title
+		product.Title = strings.TrimSpace(title)
+	} else if title := doc.Find("h1").First().Text(); title != "" {
+		product.Title = strings.TrimSpace(title)
+	} else {
+		product.Title = strings.TrimSpace(doc.Find("title").Text())
 	}
 
-	// Imagen
+	// Imagen (Sin Uso)
 	if img, exists := doc.Find("meta[property='og:image']").Attr("content"); exists && img != "" {
 		product.ImageURL = img
 	} else if img, exists := doc.Find("#landingImage").Attr("src"); exists { // Amazon
 		product.ImageURL = img
 	}
-
-	doc.Find("script").Each(func(i int, s *goquery.Selection) {
-		textoScript := s.Text()
-
-		// Si el script contiene los datos analíticos de Zara
-		if strings.Contains(textoScript, "zara.analyticsData") {
-
-			// Cazamos el título usando Regex
-			reTitle := regexp.MustCompile(`"productName"\s*:\s*"([^"]+)"`)
-			if matchTitle := reTitle.FindStringSubmatch(textoScript); len(matchTitle) > 1 {
-				product.Title = matchTitle[1]
-			}
-
-			// Cazamos el precio usando Regex
-			rePrice := regexp.MustCompile(`"mainPrice"\s*:\s*([0-9.]+)`)
-			if matchPrice := rePrice.FindStringSubmatch(textoScript); len(matchPrice) > 1 {
-				product.Price = matchPrice[1]
-			}
-		}
-	})
 
 	// Precio
 	if price, exists := doc.Find("meta[property='product:price:amount']").Attr("content"); exists && price != "" {
@@ -136,6 +154,70 @@ func Extract(targetURL string) (*ProductData, error) {
 				} else {
 					precioCrudo = euros
 				}
+			}
+		}
+		if precioCrudo == "" { // Nike
+			precioCrudo = doc.Find("[data-testid='currentPrice-container']").First().Text()
+
+			if precioCrudo != "" {
+				precioCrudo = strings.ReplaceAll(precioCrudo, "€", "")
+				precioCrudo = strings.ReplaceAll(precioCrudo, "\u00a0", "")
+				precioCrudo = strings.ReplaceAll(precioCrudo, ",", ".")
+				precioCrudo = strings.TrimSpace(precioCrudo)
+			}
+		}
+		if precioCrudo == "" { // Worten
+			euros := strings.TrimSpace(doc.Find(".price__numbers .value").First().Text())
+			centimos := strings.TrimSpace(doc.Find(".price__numbers .decimal").First().Text())
+
+			if euros != "" {
+				euros = strings.ReplaceAll(euros, ".", "")
+				if centimos != "" {
+					precioCrudo = euros + "." + centimos
+				} else {
+					precioCrudo = euros
+				}
+			}
+		}
+		if precioCrudo == "" && strings.Contains(targetURL, "casadellibro") {
+			doc.Find("script[type='application/ld+json']").Each(func(i int, s *goquery.Selection) {
+				textoScript := s.Text()
+
+				// Usamos (?i) para que la Regex ignore mayúsculas y minúsculas al buscar "price"
+				rePrice := regexp.MustCompile(`(?i)"price"\s*:\s*"?([0-9.,]+)"?`)
+				if matchPrice := rePrice.FindStringSubmatch(textoScript); len(matchPrice) > 1 {
+					precioCrudo = matchPrice[1]
+					// Limpiamos por si acaso viene con coma en el JSON
+					precioCrudo = strings.ReplaceAll(precioCrudo, ",", ".")
+				}
+			})
+		}
+		if precioCrudo == "" { // Tradeinn
+			if val, exists := doc.Find("#productFinalPrice").Attr("value"); exists && val != "" {
+				precioCrudo = val
+			}
+		}
+		if precioCrudo == "" && strings.Contains(targetURL, "kavehome") { // Kave Home
+			doc.Find("script[type='application/ld+json']").Each(func(i int, s *goquery.Selection) {
+				textoScript := s.Text()
+				if strings.Contains(textoScript, `"price"`) && precioCrudo == "" {
+					rePrice := regexp.MustCompile(`"price"\s*:\s*"?([0-9]+(?:[.,][0-9]+)?)"?`)
+					if matchPrice := rePrice.FindStringSubmatch(textoScript); len(matchPrice) > 1 {
+						precioCrudo = matchPrice[1]
+						fmt.Println("🛠️ DEBUG KAVE HOME -> Precio cazado del JSON-LD:", precioCrudo)
+					}
+				}
+			})
+			if precioCrudo == "" {
+				precioCrudo = doc.Find("main").Find("[class*='price'], [class*='Price']").First().Text()
+				if precioCrudo != "" {
+					precioCrudo = strings.ReplaceAll(precioCrudo, "€", "")
+					fmt.Println("🛠️ DEBUG KAVE HOME -> Precio cazado del HTML:", precioCrudo)
+				}
+			}
+			if precioCrudo != "" {
+				precioCrudo = strings.ReplaceAll(precioCrudo, ",", ".")
+				precioCrudo = strings.TrimSpace(precioCrudo)
 			}
 		}
 
