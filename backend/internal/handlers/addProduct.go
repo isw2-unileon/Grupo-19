@@ -1,3 +1,4 @@
+//nolint:misspell
 package handlers
 
 import (
@@ -12,10 +13,12 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/scraper"
 )
 
+// TrackRequest represent the url of the product we want to track
 type TrackRequest struct {
 	URL string `json:"url" binding:"required"`
 }
 
+// AddProduct add an item to the system
 func AddProduct(c *gin.Context) {
 	var req TrackRequest
 

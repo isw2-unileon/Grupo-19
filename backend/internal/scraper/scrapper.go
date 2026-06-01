@@ -1,3 +1,4 @@
+//nolint:misspell
 package scraper
 
 /*
@@ -42,6 +43,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+// ProductData contains the info about the product
 type ProductData struct {
 	URL         string `json:"url"`
 	Title       string `json:"title"`
@@ -235,7 +237,7 @@ func Extract(targetURL string) (*ProductData, error) {
 			doc.Find("script[type='application/ld+json']").Each(func(i int, s *goquery.Selection) {
 				textoScript := s.Text()
 				if strings.Contains(textoScript, `"price"`) && precioCrudo == "" {
-					rePrice := regexp.MustCompile(`"price"\s*:\s*"?([0-9]+(?:[.,][0-9]+)?)"?`)
+					rePrice := regexp.MustCompile(`"price"\s*:\s*"?(\d+(?:[.,]\d+)?)"?`)
 					if matchPrice := rePrice.FindStringSubmatch(textoScript); len(matchPrice) > 1 {
 						precioCrudo = matchPrice[1]
 					}
@@ -254,7 +256,7 @@ func Extract(targetURL string) (*ProductData, error) {
 		}
 
 		// Extraemos solo el número con regex
-		re := regexp.MustCompile(`[0-9]+(?:[.,][0-9]+)?`)
+		re := regexp.MustCompile(`\d+(?:[.,]\d+)?`)
 		precioLimpio := re.FindString(precioCrudo)
 
 		if precioLimpio != "" {
