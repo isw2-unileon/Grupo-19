@@ -39,6 +39,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include", // 👈 ¡AÑADE ESTA LÍNEA AQUÍ! Permite guardar la cookie HttpOnly
           body: JSON.stringify({ email, password }),
         });
 
@@ -66,6 +67,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include", // 👈 ¡AÑADE ESTA LÍNEA AQUÍ TAMBIÉN! Por consistencia en peticiones mutuas
           body: JSON.stringify({ name, email, password }),
         });
 
