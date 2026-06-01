@@ -10,7 +10,7 @@ import (
 // DB is variable we will use to access to the DB in our project
 var DB *gorm.DB
 
-// Connect initialize the conection to the DB
+// Connect initialize the connection to the DB
 func Connect(databaseURL string) {
 	var err error
 
