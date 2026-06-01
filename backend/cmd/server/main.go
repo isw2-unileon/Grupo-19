@@ -17,6 +17,7 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/auth"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/handlers"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 )
 
@@ -65,6 +66,7 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
 	})
 
+	api.POST("/track", handlers.AddProduct)
 	api.POST("/login", auth.LoginHandler)
 	api.POST("/register", auth.RegisterHandler)
 
