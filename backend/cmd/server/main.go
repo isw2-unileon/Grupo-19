@@ -10,9 +10,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	// Internal packets import
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/auth"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/handlers"
@@ -27,7 +29,7 @@ func main() {
 	// 1. Load configuration
 	cfg := config.Load()
 
-	// 2. PostgreSQL conection and table migration
+	// 2. PostgreSQL connection and table migration
 	database.Connect(cfg.DatabaseURL)
 
 	err := database.DB.AutoMigrate(
@@ -48,6 +50,13 @@ func main() {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins: true, // Permite peticiones de cualquier puerto (React)
+		AllowMethods:    []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:    []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		MaxAge:          12 * time.Hour,
+	}))
+
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -58,6 +67,8 @@ func main() {
 	})
 
 	api.POST("/track", handlers.AddProduct)
+	api.POST("/login", auth.LoginHandler)
+	api.POST("/register", auth.RegisterHandler)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
