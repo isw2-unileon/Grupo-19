@@ -23,7 +23,10 @@ func setupTestDB() {
 	}
 
 	// Creamos las tablas necesarias
-	db.AutoMigrate(&models.User{})
+	err2 := db.AutoMigrate(&models.User{})
+	if err2 != nil {
+		panic("Error al migrar la base de datos de prueba")
+	}
 
 	// Sustituimos la base de datos real por la de prueba
 	database.DB = db

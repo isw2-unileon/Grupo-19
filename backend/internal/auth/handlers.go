@@ -11,18 +11,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// LoginRequest struct representing the form received
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
+// RegisterRequest struct representing the form received
 type RegisterRequest struct {
 	Username string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
-// Checks if the user exists. If true, checks if the password is correct
+// LoginHandler checks if the user exists. If true, checks if the password is correct
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
 
@@ -51,7 +53,7 @@ func LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Login exitoso"})
 }
 
-// Check for duplicates and save new user
+// RegisterHandler check for duplicates and save new user
 func RegisterHandler(c *gin.Context) {
 	var req RegisterRequest
 

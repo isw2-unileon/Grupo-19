@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// User
 type User struct {
 	UserID     uint `gorm:"primaryKey;autoIncrement"` // PK
 	Username   string
@@ -11,6 +12,7 @@ type User struct {
 	RegisterAt time.Time
 }
 
+// Product
 type Product struct {
 	ProductID   uint `gorm:"primaryKey;autoIncrement"` // PK
 	Name        string
@@ -22,6 +24,7 @@ type Product struct {
 	UpdatedAt   time.Time
 }
 
+// Tracking
 type Tracking struct {
 	UserID             uint `gorm:"primaryKey;autoIncrement:false"` // PK, FK
 	ProductID          uint `gorm:"primaryKey;autoIncrement:false"` // PK, FK
@@ -30,6 +33,7 @@ type Tracking struct {
 	TrackingStartDate  time.Time
 }
 
+// PriceHistory
 type PriceHistory struct {
 	PriceHistoryID uint    `gorm:"primaryKey;autoIncrement"` // PK
 	ProductID      uint    // FK ProductID

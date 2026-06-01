@@ -28,7 +28,7 @@ func main() {
 	// 1. Load configuration
 	cfg := config.Load()
 
-	// 2. PostgreSQL conection and table migration
+	// 2. PostgreSQL connection and table migration
 	database.Connect(cfg.DatabaseURL)
 
 	err := database.DB.AutoMigrate(
