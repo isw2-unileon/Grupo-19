@@ -10,7 +10,7 @@ Funciona en:
 	Neobyte
 	Pcbox
 	Nike
-	Worten (-Titulo, Ir a ver titulo para posible solucion)
+	Worten
 	La casa del libro
 	Tradeinn
 	Drunni
@@ -97,7 +97,7 @@ func Extract(targetURL string) (*ProductData, error) {
 	// Titulo
 	if title, exists := doc.Find("meta[property='og:title']").Attr("content"); exists && title != "" {
 		product.Title = strings.TrimSpace(title)
-	} else if title, exists := doc.Find("meta[name='og:title']").Attr("content"); exists && title != "" { // Worten (No funciona el titulo unicamente, dar opcion al usuario de poner el titulo que quiera)
+	} else if title, exists := doc.Find("meta[name='og:title']").Attr("content"); exists && title != "" { // Worten
 		product.Title = strings.TrimSpace(strings.ReplaceAll(title, " | Worten.es", ""))
 	} else if title := doc.Find("#productTitle").Text(); title != "" { // Amazon
 		product.Title = strings.TrimSpace(title)
@@ -107,11 +107,45 @@ func Extract(targetURL string) (*ProductData, error) {
 		product.Title = strings.TrimSpace(doc.Find("title").Text())
 	}
 
-	// Imagen (Sin Uso)
-	if img, exists := doc.Find("meta[property='og:image']").Attr("content"); exists && img != "" {
-		product.ImageURL = img
-	} else if img, exists := doc.Find("#landingImage").Attr("src"); exists { // Amazon
-		product.ImageURL = img
+	// Imagen
+	if strings.Contains(targetURL, "worten") {
+		if img, exists := doc.Find("meta[name='og:image']").Attr("content"); exists && img != "" {
+			if strings.HasPrefix(img, "/") {
+				product.ImageURL = "https://www.worten.es" + img
+			} else {
+				product.ImageURL = img
+			}
+		} else if img, exists := doc.Find("img.product-gallery__slider-image").Attr("src"); exists && img != "" {
+			if strings.HasPrefix(img, "/") {
+				product.ImageURL = "https://www.worten.es" + img
+			} else {
+				product.ImageURL = img
+			}
+		}
+	} else if htmlCrudo, err := doc.Html(); err == nil { // Amazon
+		reHiRes := regexp.MustCompile(`"hiRes"\s*:\s*"([^"]+)"`)
+		if match := reHiRes.FindStringSubmatch(htmlCrudo); len(match) > 1 {
+			product.ImageURL = match[1]
+		} else {
+			reOldHires := regexp.MustCompile(`data-old-hires="([^"]+)"`)
+			if match2 := reOldHires.FindStringSubmatch(htmlCrudo); len(match2) > 1 {
+				product.ImageURL = match2[1]
+			} else if img, exists := doc.Find("#landingImage").Attr("src"); exists && img != "" {
+				product.ImageURL = strings.TrimSpace(img)
+			}
+		}
+
+		if product.ImageURL == "" {
+			if img, exists := doc.Find("meta[property='og:image']").Attr("content"); exists {
+				if strings.Contains(img, ".jpg") || strings.Contains(img, ".png") {
+					product.ImageURL = strings.TrimSpace(img)
+				}
+			}
+		}
+	} else {
+		if img, exists := doc.Find("meta[property='og:image']").Attr("content"); exists && img != "" {
+			product.ImageURL = strings.TrimSpace(img)
+		}
 	}
 
 	// Precio
@@ -197,14 +231,13 @@ func Extract(targetURL string) (*ProductData, error) {
 				precioCrudo = val
 			}
 		}
-		if precioCrudo == "" && strings.Contains(targetURL, "kavehome") { // Kave Home
+		if precioCrudo == "" { // Kave Home
 			doc.Find("script[type='application/ld+json']").Each(func(i int, s *goquery.Selection) {
 				textoScript := s.Text()
 				if strings.Contains(textoScript, `"price"`) && precioCrudo == "" {
 					rePrice := regexp.MustCompile(`"price"\s*:\s*"?([0-9]+(?:[.,][0-9]+)?)"?`)
 					if matchPrice := rePrice.FindStringSubmatch(textoScript); len(matchPrice) > 1 {
 						precioCrudo = matchPrice[1]
-						fmt.Println("🛠️ DEBUG KAVE HOME -> Precio cazado del JSON-LD:", precioCrudo)
 					}
 				}
 			})
@@ -212,7 +245,6 @@ func Extract(targetURL string) (*ProductData, error) {
 				precioCrudo = doc.Find("main").Find("[class*='price'], [class*='Price']").First().Text()
 				if precioCrudo != "" {
 					precioCrudo = strings.ReplaceAll(precioCrudo, "€", "")
-					fmt.Println("🛠️ DEBUG KAVE HOME -> Precio cazado del HTML:", precioCrudo)
 				}
 			}
 			if precioCrudo != "" {
@@ -230,8 +262,18 @@ func Extract(targetURL string) (*ProductData, error) {
 		}
 	}
 
-	// Descripcion (Sin Uso)
-	if desc, exists := doc.Find("meta[property='og:description']").Attr("content"); exists && desc != "" {
+	// Descripcion
+	if strings.Contains(targetURL, "druni") {
+		descDruni := doc.Find(".product.attribute.description .value").Text()
+		if descDruni != "" {
+			descDruni = strings.ReplaceAll(descDruni, "\t", "")
+
+			reNewlines := regexp.MustCompile(`\n{3,}`)
+			descDruni = reNewlines.ReplaceAllString(descDruni, "\n\n")
+
+			product.Description = strings.TrimSpace(descDruni)
+		}
+	} else if desc, exists := doc.Find("meta[property='og:description']").Attr("content"); exists && desc != "" {
 		product.Description = desc
 	} else {
 		product.Description = doc.Find("#feature-bullets").Text() // Amazon

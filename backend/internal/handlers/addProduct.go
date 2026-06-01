@@ -54,6 +54,8 @@ func AddProduct(c *gin.Context) {
 			CreatedBy:   usuarioID,
 			CreateAt:    time.Now(),
 			UpdatedAt:   time.Now(),
+			ImageURL:    product.ImageURL,
+			Description: product.Description,
 		}
 
 		if err := database.DB.Create(&producto).Error; err != nil {
@@ -63,6 +65,16 @@ func AddProduct(c *gin.Context) {
 	} else {
 		producto.LastPrice = precioFloat
 		producto.UpdatedAt = time.Now()
+
+		if product.Title != "" {
+			producto.Name = product.Title
+		}
+		if product.ImageURL != "" {
+			producto.ImageURL = product.ImageURL
+		}
+		if product.Description != "" {
+			producto.Description = product.Description
+		}
 
 		if precioFloat > 0 && (producto.LowestPrice == 0 || precioFloat < producto.LowestPrice) {
 			producto.LowestPrice = precioFloat
@@ -105,6 +117,8 @@ func AddProduct(c *gin.Context) {
 			"last_price":   producto.LastPrice,
 			"lowest_price": producto.LowestPrice,
 			"updated_at":   producto.UpdatedAt,
+			"image_url":    producto.ImageURL,
+			"description":  producto.Description,
 		},
 	})
 }
