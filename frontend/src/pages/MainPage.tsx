@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+//import React from "react";
+import { useState } from "react";
 import MainLayout from "../components/mainpage/MainLayout";
 import SearchBar from "../components/mainpage/SearchBar";
 import ResultsGrid from "../components/mainpage/ResultsGrid";

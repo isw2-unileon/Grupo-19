@@ -1,6 +1,6 @@
 import { useState } from "react";
 import LoginLayout from "../components/login/LoginLayout";
-import LoginForm from "../components/login/Loginform";
+import LoginForm from "../components/login/LoginForm";
 import LoginAnimation from "../components/login/LoginAnimation";
 
 interface LoginProps {

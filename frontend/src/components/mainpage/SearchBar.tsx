@@ -23,7 +23,7 @@ export default function SearchBar() {
             />
           </svg>
         </div>
-        
+
         {/* Input de texto */}
         <input
           type="text"
