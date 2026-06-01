@@ -49,7 +49,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         } else {
           showMessage(data.error);
         }
-      } catch (error) {
+      } catch {
         showMessage("Error de conexión con el servidor");
       }
     } else {
@@ -76,7 +76,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         } else {
           showMessage(data.error);
         }
-      } catch (error) {
+      } catch {
         showMessage("Error de conexión con el servidor");
       }
     }
