@@ -16,6 +16,8 @@ type User struct {
 type Product struct {
 	ProductID   uint `gorm:"primaryKey;autoIncrement"` // PK
 	Name        string
+	ImageURL    string `json:"image_url"`
+	Description string `json:"description"`
 	SourceURL   string
 	LastPrice   float64 `gorm:"type:decimal(10,2)"`
 	LowestPrice float64 `gorm:"type:decimal(10,2)"`

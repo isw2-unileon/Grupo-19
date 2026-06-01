@@ -17,6 +17,7 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/auth"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/handlers"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 )
 
@@ -64,7 +65,7 @@ func main() {
 
 	// --- ENRUTAMIENTO GENERAL DE LA API ---
 	api := r.Group("/api")
-	{
+{
 		api.GET("/hello", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
 		})
@@ -83,9 +84,8 @@ func main() {
 			protected.PUT("/user/profile", auth.UpdateProfileHandler)
 			protected.PUT("/user/profile/password", auth.UpdatePasswordHandler)
 
-			// Vuestras futuras rutas del tracker irán aquí también:
-			// protected.GET("/products", handlers.GetProductsHandler)
-			// protected.POST("/products", handlers.AddProductHandler)
+			// Rutas del tracker
+			protected.POST("/track", handlers.AddProduct)
 		}
 	}
 
