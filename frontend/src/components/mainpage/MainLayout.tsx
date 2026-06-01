@@ -1,21 +1,21 @@
 import React from "react";
 
 type Props = {
-  headerLeft: React.ReactNode;
-  headerRight: React.ReactNode;
-  search: React.ReactNode;
-  results: React.ReactNode;
+  header: React.ReactNode;
+  search?: React.ReactNode; // La '?' lo hace opcional por si una vista no tiene buscador
+  results?: React.ReactNode; // También opcional
+  footer: React.ReactNode;
 };
 
-export default function MainLayout({ headerLeft, headerRight, search, results }: Props) {
+export default function MainLayout({ header, search, results, footer }: Props) {
   return (
     <div style={styles.container}>
-      <header style={styles.headerContainer}>
-        <div style={styles.headerLeft}>{headerLeft}</div>
-        <div style={styles.headerRight}>{headerRight}</div>
-      </header>
-      <section style={styles.searchContainer}>{search}</section>
-      <main style={styles.resultsContainer}>{results}</main>
+      {header}
+      {/* Solo dibuja el buscador si la vista lo envía */}
+      {search && <section style={styles.searchContainer}>{search}</section>}
+      {/* Solo dibuja los resultados si la vista los envía */}
+      {results && <main style={styles.resultsContainer}>{results}</main>}
+      {footer}
     </div>
   );
 }
@@ -25,33 +25,20 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: "100vh",
     backgroundColor: "#fafafa",
     fontFamily: "sans-serif",
-    padding: "40px 80px", 
-    boxSizing: "border-box",
-  },
-  headerContainer: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "60px",
-    width: "100%",
-  },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-  },
-  headerRight: {
-    display: "flex",
-    gap: "20px",
-    alignItems: "center",
+    flexDirection: "column", // Para organizar los elementos de arriba a abajo
   },
   searchContainer: {
     display: "flex",
     justifyContent: "center",
     marginBottom: "60px",
+    padding: "40px 80px 0 80px", // Márgenes interiores aplicados aquí
   },
   resultsContainer: {
     maxWidth: "1100px",
     margin: "0 auto",
     width: "100%",
+    padding: "0 80px 40px 80px",
+    flex: 1, // Obliga al contenedor central a expandirse y empujar el footer hacia el fondo
   },
 };
