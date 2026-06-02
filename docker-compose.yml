@@ -21,6 +21,11 @@ services:
       - .:/app
     ports:
       - "8080:8080"
+    environment:
+      - PORT=8080
+      - GIN_MODE=debug
+      - DATABASE_URL=postgres://admin:secretpassword@db:5432/rastreador_precios?sslmode=disable
+      - JWT_SECRET=ClaveSecretaDePruebasDockerGrupo19!
     command: bash -c "go install github.com/air-verse/air@latest && go mod download && air -c backend/.air.toml"
     depends_on:
       - db
