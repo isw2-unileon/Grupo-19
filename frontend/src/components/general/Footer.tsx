@@ -61,7 +61,7 @@ const styles: Record<string, React.CSSProperties> = {
     footer: {
         backgroundColor: "#1f2937", // Gris muy oscuro
         color: "#f3f4f6", // Texto gris clarito
-        padding: "60px 80px 20px 80px", // Espacio interior
+        padding: "30px 80px 10px 80px", // Espacio interior
         width: "100%",
         boxSizing: "border-box",
         marginTop: "auto", // Ayuda a que se pegue abajo si la página es corta
@@ -83,7 +83,7 @@ const styles: Record<string, React.CSSProperties> = {
         color: "#FACC15", // Toque amarillo para los títulos
         fontSize: "16px",
         fontWeight: "bold",
-        marginBottom: "20px",
+        marginBottom: "12px",
         textTransform: "uppercase",
         letterSpacing: "0.5px",
     },
@@ -93,7 +93,7 @@ const styles: Record<string, React.CSSProperties> = {
         margin: 0,
         display: "flex",
         flexDirection: "column",
-        gap: "12px",
+        gap: "8px",
     },
     listItem: {
         fontSize: "14px",
@@ -108,6 +108,6 @@ const styles: Record<string, React.CSSProperties> = {
         textAlign: "center",
         color: "#6b7280",
         fontSize: "13px",
-        marginTop: "20px",
+        marginTop: "10px",
     },
 };
