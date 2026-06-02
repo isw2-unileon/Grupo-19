@@ -13,10 +13,27 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // --- Visual Feedback (Mensajes) ---
+  // --- Visual Feedback (Mensajes y Opacidades) ---
   const [profileMsg, setProfileMsg] = useState({ text: "", isError: false });
   const [passwordMsg, setPasswordMsg] = useState({ text: "", isError: false });
 
+  const [profileOpacity, setProfileOpacity] = useState(0);
+  const [passwordOpacity, setPasswordOpacity] = useState(0);
+
+  // Funciones para mostrar mensajes que desaparecen (como en Login)
+  const showProfileMessage = (text: string, isError: boolean) => {
+    setProfileMsg({ text, isError });
+    setProfileOpacity(1);
+    setTimeout(() => setProfileOpacity(0), 3500);
+    setTimeout(() => setProfileMsg({ text: "", isError: false }), 4000);
+  };
+
+  const showPasswordMessage = (text: string, isError: boolean) => {
+    setPasswordMsg({ text, isError });
+    setPasswordOpacity(1);
+    setTimeout(() => setPasswordOpacity(0), 3500);
+    setTimeout(() => setPasswordMsg({ text: "", isError: false }), 4000);
+  };
 
   // LOAD PROFILE DATA FROM BACKEND (GET)
   useEffect(() => {
@@ -24,7 +41,7 @@ export default function Profile() {
       try {
         const response = await fetch("http://localhost:8080/api/user/profile", {
           method: "GET",
-          credentials: "include", // auth_token HttpOnly sent automatically
+          credentials: "include",
         });
 
         const data = await response.json();
@@ -33,11 +50,11 @@ export default function Profile() {
           setUsername(data.Username);
           setEmail(data.Email);
         } else {
-          setProfileMsg({ text: data.error || "No se pudo cargar el perfil", isError: true });
+          showProfileMessage(data.error || "No se pudo cargar el perfil", true);
         }
       } catch (error) {
         console.error("Error al cargar perfil:", error);
-        setProfileMsg({ text: "Error de conexión con el servidor", isError: true });
+        showProfileMessage("Error de conexión con el servidor", true);
       } finally {
         setIsLoadingProfile(false);
       }
@@ -46,11 +63,9 @@ export default function Profile() {
     fetchUserProfile();
   }, []);
 
-
   // UPDATE PROFLIE DATA (PUT)
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileMsg({ text: "", isError: false });
 
     try {
       const response = await fetch("http://localhost:8080/api/user/profile", {
@@ -59,31 +74,27 @@ export default function Profile() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ username, email }), 
+        body: JSON.stringify({ username, email }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setProfileMsg({ text: "¡Perfil actualizado con éxito!", isError: false });
+        showProfileMessage("¡Perfil actualizado con éxito!", false);
       } else {
-        setProfileMsg({ text: data.error || "Error al actualizar", isError: true });
+        showProfileMessage(data.error || "Error al actualizar", true);
       }
     } catch {
-      setProfileMsg({ text: "Error de conexión con el servidor", isError: true });
+      showProfileMessage("Error de conexión con el servidor", true);
     }
   };
 
-  // ==========================================
-  // 3. ACTUALIZAR CONTRASEÑA (PUT)
-  // ==========================================
+  // ACTUALIZAR CONTRASEÑA (PUT)
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordMsg({ text: "", isError: false });
 
-    // Validación básica en Frontend
     if (newPassword !== confirmPassword) {
-      setPasswordMsg({ text: "Las contraseñas nuevas no coinciden", isError: true });
+      showPasswordMessage("Las contraseñas nuevas no coinciden", true);
       return;
     }
 
@@ -95,7 +106,7 @@ export default function Profile() {
         },
         credentials: "include",
         body: JSON.stringify({
-          currentPassword, 
+          currentPassword,
           newPassword,
         }),
       });
@@ -103,16 +114,15 @@ export default function Profile() {
       const data = await response.json();
 
       if (response.ok) {
-        setPasswordMsg({ text: "¡Contraseña modificada con éxito!", isError: false });
-        // Clear after success
+        showPasswordMessage("¡Contraseña modificada con éxito!", false);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
-        setPasswordMsg({ text: data.error || "Error al cambiar contraseña", isError: true });
+        showPasswordMessage(data.error || "Error al cambiar contraseña", true);
       }
     } catch {
-      setPasswordMsg({ text: "Error de conexión con el servidor", isError: true });
+      showPasswordMessage("Error de conexión con el servidor", true);
     }
   };
 
@@ -162,20 +172,22 @@ export default function Profile() {
                 />
               </div>
 
+              <button type="submit" style={styles.primaryButton}>
+                Guardar Cambios
+              </button>
+
               {profileMsg.text && (
                 <div style={{
                   ...styles.messageBox,
-                  backgroundColor: profileMsg.isError ? "#fee2e2" : "#dcfce7",
-                  border: profileMsg.isError ? "1px solid #fca5a5" : "1px solid #86efac",
-                  color: profileMsg.isError ? "#991b1b" : "#166534"
+                  opacity: profileOpacity,
+                  transition: "opacity 0.5s ease-in-out",
+                  backgroundColor: profileMsg.isError ? "#fee2e2" : "rgba(255, 204, 0, 0.2)",
+                  border: profileMsg.isError ? "1px solid #fca5a5" : "1px solid rgba(255, 204, 0, 0.5)",
+                  color: profileMsg.isError ? "#991b1b" : "#806600"
                 }}>
                   {profileMsg.text}
                 </div>
               )}
-
-              <button type="submit" style={styles.primaryButton}>
-                Guardar Cambios
-              </button>
             </form>
           </section>
 
@@ -219,20 +231,22 @@ export default function Profile() {
                 />
               </div>
 
+              <button type="submit" style={styles.primaryButton}>
+                Actualizar Contraseña
+              </button>
+
               {passwordMsg.text && (
                 <div style={{
                   ...styles.messageBox,
-                  backgroundColor: passwordMsg.isError ? "#fee2e2" : "#dcfce7",
-                  border: passwordMsg.isError ? "1px solid #fca5a5" : "1px solid #86efac",
-                  color: passwordMsg.isError ? "#991b1b" : "#166534"
+                  opacity: passwordOpacity,
+                  transition: "opacity 0.5s ease-in-out",
+                  backgroundColor: passwordMsg.isError ? "#fee2e2" : "rgba(255, 204, 0, 0.2)",
+                  border: passwordMsg.isError ? "1px solid #fca5a5" : "1px solid rgba(255, 204, 0, 0.5)",
+                  color: passwordMsg.isError ? "#991b1b" : "#806600"
                 }}>
                   {passwordMsg.text}
                 </div>
               )}
-
-              <button type="submit" style={styles.primaryButton}>
-                Actualizar Contraseña
-              </button>
             </form>
           </section>
         </div>
