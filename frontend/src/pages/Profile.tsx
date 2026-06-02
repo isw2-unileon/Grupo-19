@@ -1,49 +1,142 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/general/Header";
 import Footer from "../components/general/Footer";
 
 export default function Profile() {
-  // --- Estados para los campos del Perfil ---
-  const [username, setUsername] = useState("Usuario_Grupo19");
-  const [email, setEmail] = useState("grupo19@unileon.es");
+  // --- For porfile fields ---
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  // --- Estados para el cambio de Contraseña ---
+  // --- States for password change ---
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // --- Funciones preparadas para conectar con el Backend en Go ---
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  // --- Visual Feedback (Mensajes) ---
+  const [profileMsg, setProfileMsg] = useState({ text: "", isError: false });
+  const [passwordMsg, setPasswordMsg] = useState({ text: "", isError: false });
+
+
+  // LOAD PROFILE DATA FROM BACKEND (GET)
+  useEffect(() => {
+    async function fetchUserProfile() {
+      try {
+        const response = await fetch("http://localhost:8080/api/user/profile", {
+          method: "GET",
+          credentials: "include", // auth_token HttpOnly sent automatically
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setUsername(data.Username);
+          setEmail(data.Email);
+        } else {
+          setProfileMsg({ text: data.error || "No se pudo cargar el perfil", isError: true });
+        }
+      } catch (error) {
+        console.error("Error al cargar perfil:", error);
+        setProfileMsg({ text: "Error de conexión con el servidor", isError: true });
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    }
+
+    fetchUserProfile();
+  }, []);
+
+
+  // UPDATE PROFLIE DATA (PUT)
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Enviando a Go los nuevos datos de usuario:", { username, email });
-    alert("Perfil actualizado correctamente (Simulado)");
+    setProfileMsg({ text: "", isError: false });
+
+    try {
+      const response = await fetch("http://localhost:8080/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ username, email }), 
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setProfileMsg({ text: "¡Perfil actualizado con éxito!", isError: false });
+      } else {
+        setProfileMsg({ text: data.error || "Error al actualizar", isError: true });
+      }
+    } catch {
+      setProfileMsg({ text: "Error de conexión con el servidor", isError: true });
+    }
   };
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  // ==========================================
+  // 3. ACTUALIZAR CONTRASEÑA (PUT)
+  // ==========================================
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordMsg({ text: "", isError: false });
+
+    // Validación básica en Frontend
     if (newPassword !== confirmPassword) {
-      alert("Las contraseñas nuevas no coinciden");
+      setPasswordMsg({ text: "Las contraseñas nuevas no coinciden", isError: true });
       return;
     }
-    console.log("Enviando a Go el cambio de contraseña");
-    alert("Contraseña actualizada correctamente (Simulado)");
-    // Limpiar campos de seguridad
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+
+    try {
+      const response = await fetch("http://localhost:8080/api/user/profile/password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          currentPassword, 
+          newPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPasswordMsg({ text: "¡Contraseña modificada con éxito!", isError: false });
+        // Clear after success
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setPasswordMsg({ text: data.error || "Error al cambiar contraseña", isError: true });
+      }
+    } catch {
+      setPasswordMsg({ text: "Error de conexión con el servidor", isError: true });
+    }
   };
+
+  if (isLoadingProfile) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#fafafa" }}>
+        <Header />
+        <main style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <p style={{ fontFamily: "sans-serif", fontWeight: "bold", color: "#4b5563" }}>Cargando datos de cuenta...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#fafafa", fontFamily: "sans-serif" }}>
-      {/*  cabecera global  */}
       <Header />
 
-      {/* Contenido principal  */}
       <main style={styles.mainContent}>
         <h2 style={styles.pageTitle}>Ajustes de Cuenta</h2>
 
         <div style={styles.sectionsGrid}>
-          {/* INFORMACIÓN DEL PERFIL */}
+          {/* PROFILE INFO */}
           <section style={styles.card}>
             <h3 style={styles.cardTitle}>Información del Perfil</h3>
             <form onSubmit={handleUpdateProfile} style={styles.form}>
@@ -69,13 +162,24 @@ export default function Profile() {
                 />
               </div>
 
+              {profileMsg.text && (
+                <div style={{
+                  ...styles.messageBox,
+                  backgroundColor: profileMsg.isError ? "#fee2e2" : "#dcfce7",
+                  border: profileMsg.isError ? "1px solid #fca5a5" : "1px solid #86efac",
+                  color: profileMsg.isError ? "#991b1b" : "#166534"
+                }}>
+                  {profileMsg.text}
+                </div>
+              )}
+
               <button type="submit" style={styles.primaryButton}>
                 Guardar Cambios
               </button>
             </form>
           </section>
 
-          {/* SEGURIDAD / CONTRASEÑA */}
+          {/* PASSWORD AND SECURITY*/}
           <section style={styles.card}>
             <h3 style={styles.cardTitle}>Seguridad y Credenciales</h3>
             <form onSubmit={handleUpdatePassword} style={styles.form}>
@@ -115,6 +219,17 @@ export default function Profile() {
                 />
               </div>
 
+              {passwordMsg.text && (
+                <div style={{
+                  ...styles.messageBox,
+                  backgroundColor: passwordMsg.isError ? "#fee2e2" : "#dcfce7",
+                  border: passwordMsg.isError ? "1px solid #fca5a5" : "1px solid #86efac",
+                  color: passwordMsg.isError ? "#991b1b" : "#166534"
+                }}>
+                  {passwordMsg.text}
+                </div>
+              )}
+
               <button type="submit" style={styles.primaryButton}>
                 Actualizar Contraseña
               </button>
@@ -123,12 +238,10 @@ export default function Profile() {
         </div>
       </main>
 
-      {/* pie de página global */}
       <Footer />
     </div>
   );
 }
-
 
 const styles: Record<string, React.CSSProperties> = {
   mainContent: {
@@ -144,13 +257,13 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#1f2937",
     marginBottom: "32px",
     fontWeight: "bold",
-    borderLeft: "5px solid #FACC15", // Línea vertical amarilla identitaria
+    borderLeft: "5px solid #FACC15",
     paddingLeft: "12px",
     lineHeight: "1",
   },
   sectionsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))", // Responsivo automático
+    gridTemplateColumns: "repeat(auto-fit, minmax(450px, 1fr))",
     gap: "32px",
   },
   card: {
@@ -159,7 +272,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "32px",
     boxShadow: "0 4px 15px rgba(0,0,0,0.01)",
     border: "1px solid #eee",
-    borderTop: "4px solid #FACC15", // Detalle superior amarillo corporativo
+    borderTop: "4px solid #FACC15",
   },
   cardTitle: {
     margin: "0 0 24px 0",
@@ -189,6 +302,13 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "8px",
     outline: "none",
     backgroundColor: "#fff",
+  },
+  messageBox: {
+    padding: "12px",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: "bold",
+    textAlign: "center",
   },
   primaryButton: {
     padding: "14px 20px",
