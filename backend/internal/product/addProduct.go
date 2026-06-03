@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/auth"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/scraper"
@@ -42,8 +43,16 @@ func AddProduct(c *gin.Context) {
 		precioFloat = 0.0
 	}
 
-	// ID de usuario falso, a cambiar mas adelante
-	var usuarioID uint = 1
+	// User ID
+	var usuarioID uint = 0
+
+	tokenString, errCookie := c.Cookie("auth_token")
+	if errCookie == nil && tokenString != "" {
+		claims, err := auth.ValidateToken(tokenString)
+		if err == nil && claims != nil {
+			usuarioID = claims.UserID
+		}
+	}
 
 	var producto models.Product
 	resultadoBusqueda := database.DB.Where("source_url = ?", product.URL).First(&producto)

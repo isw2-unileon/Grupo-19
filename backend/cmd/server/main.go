@@ -74,6 +74,8 @@ func main() {
 		api.POST("/login", auth.LoginHandler)
 		api.POST("/logout", auth.LogoutHandler)
 		api.POST("/register", auth.RegisterHandler)
+		api.GET("/products/:id", handlers.GetProductByID)
+		api.DELETE("/tracking/:id", handlers.UnfollowProduct)
 
 		// Rutas Protegidas por JWT
 		protected := api.Group("/")

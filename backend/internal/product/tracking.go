@@ -12,7 +12,7 @@ import (
 // TrackingRequest is the request body for tracking
 type TrackingRequest struct {
 	ProductID   uint    `json:"product_id" binding:"required"`
-	TargetPrice float64 `json:"target_price" binding:"required"`
+	TargetPrice float64 `json:"target_price"`
 }
 
 // UpdateTracking create or update the tracking of a product for a user
@@ -57,4 +57,16 @@ func UpdateTracking(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Alerta de precio actualizada con éxito"})
+}
+
+func UnfollowProduct(c *gin.Context) {
+	userIDContext, _ := c.Get("userID")
+	usuarioID := userIDContext.(uint)
+	productID := c.Param("id")
+
+	if err := database.DB.Where("user_id = ? AND product_id = ?", usuarioID, productID).Delete(&models.Tracking{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al dejar de seguir"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Producto eliminado de tus seguimientos"})
 }

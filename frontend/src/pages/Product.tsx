@@ -1,16 +1,258 @@
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import Header from "../components/general/Header";
 import Footer from "../components/general/Footer";
 
-export default function Product() {
+export interface Product {
+    ProductID: number;
+    Name: string;
+    image_url: string;
+    description: string;
+    SourceURL: string;
+    LastPrice: number;
+    LowestPrice: number;
+    CreatedBy: number;
+    CreateAt: string;
+    UpdatedAt: string;
+}
+
+export default function ProductView() {
+    const { id } = useParams();
+
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [targetPrice, setTargetPrice] = useState("");
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [, setSavedTargetPrice] = useState<number | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                // Cargar producto
+                const response = await fetch(`http://localhost:8080/api/products/${id}`, {
+                    credentials: "include"
+                });
+
+                // Comprobar si ya lo sigue
+                const trackingResponse = await fetch(`http://localhost:8080/api/check-tracking/${id}`, {
+                    credentials: "include"
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setProduct(data);
+                }
+
+                if (trackingResponse.ok) {
+                    const trackData = await trackingResponse.json();
+                    setIsFollowing(trackData.is_following);
+                }
+            } catch (error) {
+                console.error("Error al obtener el producto:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProduct();
+    }, [id]);
+
+    const handleFollowProduct = async () => {
+        if (!product) return;
+
+        try {
+            if (isFollowing) {
+                const response = await fetch(`http://localhost:8080/api/tracking/${product.ProductID}`, {
+                    method: "DELETE",
+                    credentials: "include"
+                });
+                if (response.ok) {
+                    setIsFollowing(false);
+                    setSavedTargetPrice(null);
+                    alert("Has dejado de seguir este producto");
+                }
+            } else {
+                const response = await fetch("http://localhost:8080/api/tracking", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        product_id: product.ProductID,
+                        target_price: 0.01,
+                        notify_price_changes: true
+                    })
+                });
+                if (response.ok) {
+                    setIsFollowing(true);
+                    alert("¡Ahora sigues este producto!");
+                }
+            }
+        } catch (error) {
+            console.error("Error al alternar seguimiento:", error);
+        }
+    };
+
+    const handleUpdatePrice = async () => {
+        if (!product) return;
+        setIsUpdating(true);
+        setProgress(30);
+
+        try {
+            const response = await fetch("http://localhost:8080/api/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({ url: product.SourceURL })
+            });
+
+            if (response.ok) {
+                setProgress(100);
+                const updatedData = await response.json();
+                setProduct(updatedData.data);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            setTimeout(() => {
+                setIsUpdating(false);
+                setProgress(0);
+            }, 500);
+        }
+    };
+
+    const handleCreateAlert = async () => {
+        if (!product) return;
+        if (!targetPrice) {
+            alert("Por favor, introduce un precio objetivo.");
+            return;
+        }
+        try {
+            const response = await fetch("http://localhost:8080/api/tracking", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    product_id: product.ProductID,
+                    target_price: parseFloat(targetPrice)
+                })
+            });
+
+            if (response.ok) {
+                alert(`¡Alerta creada! Te avisaremos cuando baje de ${targetPrice}€`);
+                setTargetPrice("");
+            }
+        } catch (error) {
+            console.error("Error creando alerta:", error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#fafafa" }}>
+                <Header />
+                <main style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <h2>Cargando producto... ⏳</h2>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (!product) return <h2>Producto no encontrado</h2>;
+
     return (
         <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", backgroundColor: "#fafafa" }}>
             <Header />
+            <main style={{ flex: 1, display: "flex", justifyContent: "center", padding: "2rem" }}>
+                <div style={{ maxWidth: "900px", width: "100%", display: "flex", flexDirection: "column", gap: "2rem", backgroundColor: "#fff", padding: "2rem", borderRadius: "8px", boxShadow: "0 4px 6px rgba(0,0,0,0.05)" }}>
 
-            <main style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-                <h2>Ficha de producto</h2>
+                    <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+                        <div style={{ flex: "1 1 30%", minWidth: "250px" }}>
+                            <img src={product.image_url} alt={product.Name} style={{ width: "100%", borderRadius: "8px", objectFit: "contain", border: "1px solid #f0f0f0" }} />
+                        </div>
+                        <div style={{ flex: "2 1 60%" }}>
+                            <h1 style={{ margin: "0 0 1rem 0", fontSize: "2.2rem", color: "#111827", lineHeight: "1.2" }}>{product.Name}</h1>
+                        </div>
+                    </div>
+
+                    {/* Botones de Accion */}
+                    <div style={{ display: "flex", gap: "1rem" }}>
+                        <button
+                            onClick={!isFollowing ? handleFollowProduct : undefined}
+                            style={{
+                                ...btnStylePrimary,
+                                backgroundColor: isFollowing ? "#111827" : "#FACC15",
+                                color: isFollowing ? "#FACC15" : "#111827",
+                                border: isFollowing ? "2px solid #FACC15" : "none"
+                            }}
+                        >
+                            {isFollowing ? (
+                                <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg> Siguiendo</>
+                            ) : (
+                                <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg> Seguir producto</>
+                            )}
+                        </button>
+                        <button
+                            className="btn-wrapper" /* Añadimos la clase aquí */
+                            style={{ ...btnStyleSecondary, position: "relative", overflow: "hidden" }}
+                            onClick={handleUpdatePrice}
+                            disabled={isUpdating}
+                        >
+                            {/* La barra de progreso (detrás del texto gracias al z-index -1) */}
+                            {isUpdating && (
+                                <div className="progress-bar-full" style={{ width: `${progress}%` }}></div>
+                            )}
+
+                            {/* Contenido del botón */}
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", position: "relative" }}>
+                                <span className={isUpdating ? "spinning-reverse" : ""} style={{ display: "inline-block" }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                        <path d="M3 3v5h5" />
+                                    </svg>
+                                </span>
+                                {isUpdating ? "Actualizando..." : "Actualizar precio"}
+                            </div>
+                        </button>
+                    </div>
+
+                    <hr style={{ border: "none", borderTop: "1px solid #eaeaea", margin: "0" }} />
+
+                    {/* Precios y Alerta */}
+                    <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+                        <div style={{ flex: "1 1 45%", display: "flex", flexDirection: "column", gap: "0.75rem", justifyContent: "center" }}>
+                            <div style={{ fontSize: "1.75rem", fontWeight: "bold", color: "#111827" }}>{product.LastPrice} €</div>
+                            <div style={{ fontSize: "1rem", color: "#059669", fontWeight: "600" }}>Histórico más bajo: {product.LowestPrice} €</div>
+                        </div>
+
+                        <div style={{ flex: "1 1 45%", display: "flex", flexDirection: "column", gap: "0.5rem", justifyContent: "center" }}>
+                            <label style={{ fontWeight: "600", color: "#4B5563", fontSize: "0.95rem" }}>Avisarme cuando baje de:</label>
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                                <input type="number" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} placeholder="Ej: 20.00" style={{ flex: 1, padding: "0.75rem", borderRadius: "6px", border: "1px solid #D1D5DB" }} />
+                                <button style={btnStyleAlert} onClick={handleCreateAlert}>Crear</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr style={{ border: "none", borderTop: "1px solid #eaeaea", margin: "0" }} />
+
+                    {/* Descripción */}
+                    <div>
+                        <h3>Descripción del producto</h3>
+                        <p style={{ whiteSpace: "pre-wrap", color: "#4B5563", lineHeight: "1.7", backgroundColor: "#F9FAFB", padding: "1.5rem", borderRadius: "8px" }}>{product.description}</p>
+                    </div>
+
+                </div>
             </main>
-
             <Footer />
         </div>
     );
 }
+
+const btnStylePrimary = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1.5rem", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem", flex: 1, transition: "0.2s" };
+const btnStyleSecondary = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1.5rem", backgroundColor: "#F3F4F6", color: "#374151", border: "1px solid #E5E7EB", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem", flex: 1 };
+const btnStyleAlert = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", backgroundColor: "#111827", color: "#FACC15", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem" };
