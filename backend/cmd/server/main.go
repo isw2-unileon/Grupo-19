@@ -65,7 +65,7 @@ func main() {
 
 	// --- ENRUTAMIENTO GENERAL DE LA API ---
 	api := r.Group("/api")
-{
+	{
 		api.GET("/hello", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
 		})
@@ -86,6 +86,7 @@ func main() {
 
 			// Rutas del tracker
 			protected.POST("/track", handlers.AddProduct)
+			protected.GET("/products/search", handlers.SearchProducts)
 		}
 	}
 

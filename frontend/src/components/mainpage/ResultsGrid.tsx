@@ -8,8 +8,9 @@ export interface Product {
   LastPrice: number;
   LowestPrice: number;
   CreatedBy: number;
-  CreateAt: string; 
+  CreateAt: string;
   UpdatedAt: string;
+  image_url: string;
 }
 
 // 2. Definición de las propiedades que recibe el componente
@@ -22,7 +23,7 @@ export default function ResultsGrid({ products = [] }: ResultsGridProps) {
   return (
     <div>
       <h3 style={styles.title}>Results</h3>
-      
+
       {/* Comprobamos de forma segura si el array está vacío */}
       {!products || products.length === 0 ? (
         <div style={styles.emptyContainer}>
@@ -39,8 +40,26 @@ export default function ResultsGrid({ products = [] }: ResultsGridProps) {
             return (
               <div key={product.ProductID} style={styles.card}>
                 <div>
+                  <div style={styles.imageContainer}>
+                    {product.image_url ? (
+                      <img src={product.image_url} alt={product.Name} style={styles.productImage} />
+                    ) : (
+                      <div style={styles.imagePlaceholder}>Sin imagen</div>
+                    )}
+                  </div>
+
                   <h4 style={styles.productName}>{product.Name || "Producto sin nombre"}</h4>
-                  <span style={styles.productLink}>{product.SourceURL || "#"}</span>
+
+                  {/* --- MODIFICADO: Enlace Clickable --- */}
+                  <a
+                    href={product.SourceURL || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.productLink}
+                  >
+                    Enlace de compra
+                  </a>
+
                   <div style={styles.priceTag}>
                     Precio actual: <strong style={styles.priceNumber}>{currentPrice.toFixed(2)}€</strong>
                   </div>
@@ -93,6 +112,26 @@ const styles: Record<string, React.CSSProperties> = {
     borderTop: "4px solid #FACC15",
     minHeight: "230px",
   },
+  imageContainer: {
+    width: "100%",
+    height: "160px", // Tamaño fijo en altura
+    marginBottom: "16px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: "8px",
+    overflow: "hidden", // Corta cualquier cosa que se salga de la caja
+  },
+  productImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain", // Hace que la imagen se vea entera sin estirarse
+  },
+  imagePlaceholder: {
+    color: "#9ca3af",
+    fontSize: "13px",
+  },
   productName: {
     margin: "0 0 6px 0",
     fontSize: "18px",
@@ -100,14 +139,11 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: "bold",
   },
   productLink: {
-    display: "block",
+    display: "inline-block", // Cambiado para que el subrayado quede bien
     fontSize: "13px",
     color: "#2563eb",
-    textDecoration: "none",
+    textDecoration: "underline", // Añade el subrayado típico de los enlaces
     marginBottom: "14px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
   },
   priceTag: {
     fontSize: "15px",

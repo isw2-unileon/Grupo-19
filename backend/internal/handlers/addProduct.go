@@ -113,15 +113,6 @@ func AddProduct(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Operación realizada con éxito en PostgreSQL",
-		"data": gin.H{
-			"product_id":   producto.ProductID,
-			"name":         producto.Name,
-			"source_url":   producto.SourceURL,
-			"last_price":   producto.LastPrice,
-			"lowest_price": producto.LowestPrice,
-			"updated_at":   producto.UpdatedAt,
-			"image_url":    producto.ImageURL,
-			"description":  producto.Description,
-		},
+		"data":    producto, // Return the model
 	})
 }
