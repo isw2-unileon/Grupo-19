@@ -8,9 +8,11 @@ import Footer from "../components/general/Footer";
 
 export default function MainPage() {
   const [productsList, setProductsList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Method called by SearchBar when user press "Añadir" or Enter
   const procesarBusqueda = async (texto: string, esEnlace: boolean) => {
+    setIsLoading(true);
     if (esEnlace) {
       console.log("Detectado un ENLACE. Llamando al scraper con:", texto);
       try {
@@ -52,13 +54,14 @@ export default function MainPage() {
         console.error("Error de red en la búsqueda:", error);
       }
     }
+    setIsLoading(false);
   };
 
   return (
     <MainLayout
       header={<Header />}
       search={<SearchBar onSearch={procesarBusqueda} />}
-      results={<ResultsGrid products={productsList} />}
+      results={<ResultsGrid products={productsList} isLoading={isLoading} />}
       footer={<Footer />}
     />
   );

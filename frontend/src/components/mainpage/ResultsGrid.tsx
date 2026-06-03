@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-// 1. Interfaz idéntica a vuestro modelo de Go
+// Same interface as go model
 export interface Product {
   ProductID: number;
   Name: string;
@@ -13,79 +13,158 @@ export interface Product {
   image_url: string;
 }
 
-// 2. Definición de las propiedades que recibe el componente
+// Property definition
 type ResultsGridProps = {
-  products?: Product[]; // El signo '?' evita errores si el padre no lo envía de inmediato
+  products?: Product[];
+  isLoading?: boolean;
 };
 
-// 3. Asignamos '= []' por defecto para que nunca intente leer un undefined
-export default function ResultsGrid({ products = [] }: ResultsGridProps) {
+// ResultsGrid build the grid of products
+export default function ResultsGrid({ products = [], isLoading = false }: ResultsGridProps) {
+  // Pagination logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [products]);
+
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentProducts = products.slice(startIndex, startIndex + itemsPerPage);
+
+  const handlePrev = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
   return (
-    <div>
+    <div style={{ position: "relative" }}>
       <h3 style={styles.title}>Results</h3>
 
-      {/* Comprobamos de forma segura si el array está vacío */}
+      {/* Loading layer */}
+      {isLoading && (
+        <div style={styles.loadingOverlay}>
+          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" stroke="#FACC15" strokeWidth="4">
+            <circle cx="25" cy="25" r="20" strokeDasharray="31.4 31.4" strokeLinecap="round">
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                repeatCount="indefinite"
+                dur="1s"
+                values="0 25 25;360 25 25"
+              />
+            </circle>
+          </svg>
+        </div>
+      )}
+
+      {/* Empty array check */}
       {!products || products.length === 0 ? (
         <div style={styles.emptyContainer}>
           <p style={styles.emptyText}>No tienes ningún producto monitorizado todavía.</p>
           <span style={styles.emptySubtext}>¡Introduce un enlace arriba para empezar a rastrear precios!</span>
         </div>
       ) : (
-        <div style={styles.grid}>
-          {products.map((product) => {
-            // Aseguramos que los precios sean números válidos antes de usar toFixed para evitar pantallas blancas
-            const currentPrice = typeof product.LastPrice === 'number' ? product.LastPrice : 0;
-            const minPrice = typeof product.LowestPrice === 'number' ? product.LowestPrice : 0;
+        <>
+          <div style={styles.grid}>
+            {currentProducts.map((product) => {
+              // Check if prices are valid numbers
+              const currentPrice = typeof product.LastPrice === 'number' ? product.LastPrice : 0;
+              const minPrice = typeof product.LowestPrice === 'number' ? product.LowestPrice : 0;
 
-            return (
-              <div key={product.ProductID} style={styles.card}>
-                <div>
-                  <div style={styles.imageContainer}>
-                    {product.image_url ? (
-                      <img src={product.image_url} alt={product.Name} style={styles.productImage} />
-                    ) : (
-                      <div style={styles.imagePlaceholder}>Sin imagen</div>
-                    )}
+              return (
+                <div key={product.ProductID} style={styles.card}>
+                  <div>
+                    {/* --- Image --- */}
+                    <div style={styles.imageContainer}>
+                      {product.image_url ? (
+                        <img src={product.image_url} alt={product.Name} style={styles.productImage} />
+                      ) : (
+                        <div style={styles.imagePlaceholder}>Sin imagen</div>
+                      )}
+                    </div>
+
+                    <h4 style={styles.productName}>{product.Name || "Producto sin nombre"}</h4>
+
+                    {/* --- URL --- */}
+                    <a
+                      href={product.SourceURL || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.productLink}
+                    >
+                      Enlace de compra
+                    </a>
+
+                    <div style={styles.priceTag}>
+                      Precio actual: <strong style={styles.priceNumber}>{currentPrice.toFixed(2)}€</strong>
+                    </div>
+                    <div style={styles.lowestPriceTag}>
+                      Mínimo registrado: {minPrice.toFixed(2)}€
+                    </div>
                   </div>
 
-                  <h4 style={styles.productName}>{product.Name || "Producto sin nombre"}</h4>
-
-                  {/* --- MODIFICADO: Enlace Clickable --- */}
-                  <a
-                    href={product.SourceURL || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.productLink}
-                  >
-                    Enlace de compra
-                  </a>
-
-                  <div style={styles.priceTag}>
-                    Precio actual: <strong style={styles.priceNumber}>{currentPrice.toFixed(2)}€</strong>
-                  </div>
-                  <div style={styles.lowestPriceTag}>
-                    Mínimo registrado: {minPrice.toFixed(2)}€
+                  <div style={styles.notificationBox}>
+                    <label style={styles.notificationLabel}>Notify when price less than</label>
+                    <div style={styles.inputGroup}>
+                      <input type="text" placeholder="--" style={styles.alertInput} disabled />
+                      <span style={styles.currencyAddon}>€</span>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                <div style={styles.notificationBox}>
-                  <label style={styles.notificationLabel}>Notify when price less than</label>
-                  <div style={styles.inputGroup}>
-                    <input type="text" placeholder="--" style={styles.alertInput} disabled />
-                    <span style={styles.currencyAddon}>€</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          {/* --- Pagination controls --- */}
+          {totalPages > 1 && (
+            <div style={styles.paginationContainer}>
+              <button
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                style={{ ...styles.paginationButton, ...(currentPage === 1 ? styles.disabledButton : {}) }}
+              >
+                Anterior
+              </button>
+
+              <span style={styles.paginationText}>
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                style={{ ...styles.paginationButton, ...(currentPage === totalPages ? styles.disabledButton : {}) }}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
 
-// --- ESTILOS VISUALES ---
+// --- Styles ---
 const styles: Record<string, React.CSSProperties> = {
+  loadingOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    zIndex: 10,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: "12px",
+  },
   title: {
     fontSize: "22px",
     color: "#1f2937",
@@ -114,19 +193,19 @@ const styles: Record<string, React.CSSProperties> = {
   },
   imageContainer: {
     width: "100%",
-    height: "160px", // Tamaño fijo en altura
+    height: "160px",
     marginBottom: "16px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#ffffff",
     borderRadius: "8px",
-    overflow: "hidden", // Corta cualquier cosa que se salga de la caja
+    overflow: "hidden",
   },
   productImage: {
     width: "100%",
     height: "100%",
-    objectFit: "contain", // Hace que la imagen se vea entera sin estirarse
+    objectFit: "contain",
   },
   imagePlaceholder: {
     color: "#9ca3af",
@@ -139,10 +218,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: "bold",
   },
   productLink: {
-    display: "inline-block", // Cambiado para que el subrayado quede bien
+    display: "inline-block",
     fontSize: "13px",
     color: "#2563eb",
-    textDecoration: "underline", // Añade el subrayado típico de los enlaces
+    textDecoration: "underline",
     marginBottom: "14px",
   },
   priceTag: {
@@ -212,5 +291,34 @@ const styles: Record<string, React.CSSProperties> = {
   emptySubtext: {
     fontSize: "14px",
     color: "#9ca3af",
+  },
+  paginationContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: "40px",
+    gap: "24px",
+  },
+  paginationButton: {
+    padding: "10px 20px",
+    backgroundColor: "#FACC15",
+    color: "black",
+    border: "none",
+    borderRadius: "8px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    fontSize: "14px",
+    boxShadow: "0 4px 15px rgba(250, 204, 21, 0.2)",
+  },
+  disabledButton: {
+    backgroundColor: "#e5e7eb",
+    color: "#9ca3af",
+    cursor: "not-allowed",
+    boxShadow: "none",
+  },
+  paginationText: {
+    fontSize: "14px",
+    fontWeight: "bold",
+    color: "#374151",
   },
 };
