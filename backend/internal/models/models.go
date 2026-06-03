@@ -42,3 +42,14 @@ type PriceHistory struct {
 	Price          float64 `gorm:"type:decimal(10,2)"`
 	RegisterDate   time.Time
 }
+
+type Notification struct {
+	NotificationID uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID         uint      `gorm:"not null;index" json:"userId"`
+	ProductID      uint      `gorm:"not null" json:"productId"`
+	Type           string    `gorm:"type:varchar(20);default:'price_drop'" json:"type"`
+	Title          string    `gorm:"type:varchar(100);not null" json:"title"`
+	Description    string    `gorm:"type:text;not null" json:"description"`
+	IsRead         bool      `gorm:"default:false" json:"isRead"`
+	CreatedAt      time.Time `json:"time"`
+}

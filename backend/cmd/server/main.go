@@ -18,7 +18,8 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
-	handlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
+	notificationHandlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/notifications"
+	producthandlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
 )
 
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -37,6 +38,7 @@ func main() {
 		&models.Product{},
 		&models.Tracking{},
 		&models.PriceHistory{},
+		&models.Notification{},
 	)
 	if err != nil {
 		logger.Error("Error al migrar la base de datos", "error", err)
@@ -85,9 +87,12 @@ func main() {
 			protected.PUT("/user/profile/password", auth.UpdatePasswordHandler)
 
 			// Rutas del tracker
-			protected.POST("/track", handlers.AddProduct)
-			protected.GET("/products/search", handlers.SearchProducts)
-			protected.POST("/tracking", handlers.UpdateTracking)
+			protected.POST("/track", producthandlers.AddProduct)
+			protected.GET("/products/search", producthandlers.SearchProducts)
+			protected.POST("/tracking", producthandlers.UpdateTracking)
+
+			// Centro de Notificaciones
+			protected.GET("/user/notifications", notificationHandlers.GetUserNotifications)
 		}
 	}
 
