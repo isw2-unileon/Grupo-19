@@ -93,6 +93,8 @@ func main() {
 
 			// Centro de Notificaciones
 			protected.GET("/user/notifications", notificationHandlers.GetUserNotifications)
+			protected.PATCH("/user/notifications/:id", notificationHandlers.MarkNotificationAsRead)
+			protected.DELETE("/user/notifications/:id", notificationHandlers.DeleteNotification)
 		}
 	}
 
