@@ -1,11 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
 
-export default function SearchBar() {
+type Props = {
+  onSearch: (texto: string, esEnlace: boolean) => void;
+};
+
+export default function SearchBar({ onSearch }: Props) {
+
+  const [query, setQuery] = useState("");
+
+  const handleAction = () => {
+    if (!query.trim()) return;
+
+    // Rule to know if is an URL or a name
+    const urlPattern = /^(https?:\/\/|www\.)/i;
+    const esEnlace = urlPattern.test(query.trim());
+
+    onSearch(query.trim(), esEnlace);
+
+    // Clen SearchBar
+    setQuery("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleAction();
+    }
+  };
+
   return (
     <div style={styles.container}>
-      {/* --- Contenedor de la barra de búsqueda con la lupa --- */}
+      {/* --- Sear bar --- */}
       <div style={styles.searchWrapper}>
-        {/* Icono de Lupa (SVG Nativo) */}
         <div style={styles.iconContainer}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -24,17 +49,19 @@ export default function SearchBar() {
           </svg>
         </div>
 
-        {/* Input de texto */}
+        {/* Text input */}
         <input
           type="text"
-          placeholder="Busca un producto..."
+          placeholder="Busca un producto o introduce un enlace..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           style={styles.input}
-          disabled
         />
       </div>
 
-      {/* --- Botón Añadir (Ahora separado a la derecha) --- */}
-      <button type="button" style={styles.addButton}>
+      {/* --- Add button --- */}
+      <button type="button" onClick={handleAction} style={styles.addButton}>
         Añadir
       </button>
     </div>
@@ -45,8 +72,8 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: "flex",
     width: "100%",
-    maxWidth: "750px", // Ampliado un poco para dar más espacio a la separación
-    gap: "16px",       // Este hueco separa visualmente la barra del botón
+    maxWidth: "750px",
+    gap: "16px",
     alignItems: "center",
   },
   searchWrapper: {
@@ -71,21 +98,21 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     flex: 1,
-    padding: "16px 16px 16px 12px", // Ajustado el padding izquierdo para que no pegue al icono
+    padding: "16px 16px 16px 12px",
     fontSize: "15px",
     border: "none",
     backgroundColor: "transparent",
     outline: "none",
   },
   addButton: {
-    padding: "16px 32px", // Ajustado el padding para que tenga la misma altura que la barra
+    padding: "16px 32px",
     border: "none",
     background: "#FACC15",
     color: "black",
     fontWeight: "bold",
     fontSize: "15px",
-    borderRadius: "8px",  // Ahora lleva bordes redondeados propios al estar suelto
+    borderRadius: "8px",
     cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(250, 204, 21, 0.2)", // Sutil sombra amarilla para que destaque
+    boxShadow: "0 4px 15px rgba(250, 204, 21, 0.2)",
   },
 };

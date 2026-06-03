@@ -86,15 +86,20 @@ func AddProduct(c *gin.Context) {
 		database.DB.Save(&producto)
 	}
 
-	nuevoPrecio := models.PriceHistory{
-		ProductID:    producto.ProductID,
-		Price:        precioFloat,
-		RegisterDate: time.Now(),
-	}
+	var ultimoHistorial models.PriceHistory
+	errHistorial := database.DB.Where("product_id = ?", producto.ProductID).Order("register_date desc").First(&ultimoHistorial).Error
 
-	if err := database.DB.Create(&nuevoPrecio).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar el historial de precios"})
-		return
+	if errHistorial != nil || time.Since(ultimoHistorial.RegisterDate) >= 12*time.Hour {
+		nuevoPrecio := models.PriceHistory{
+			ProductID:    producto.ProductID,
+			Price:        precioFloat,
+			RegisterDate: time.Now(),
+		}
+
+		if err := database.DB.Create(&nuevoPrecio).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar el historial de precios"})
+			return
+		}
 	}
 
 	var tracking models.Tracking
@@ -113,15 +118,6 @@ func AddProduct(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Operación realizada con éxito en PostgreSQL",
-		"data": gin.H{
-			"product_id":   producto.ProductID,
-			"name":         producto.Name,
-			"source_url":   producto.SourceURL,
-			"last_price":   producto.LastPrice,
-			"lowest_price": producto.LowestPrice,
-			"updated_at":   producto.UpdatedAt,
-			"image_url":    producto.ImageURL,
-			"description":  producto.Description,
-		},
+		"data":    producto, // Return the model
 	})
 }
