@@ -74,7 +74,12 @@ func SearchProducts(c *gin.Context) {
 			if haCambiado {
 				products[index].UpdatedAt = time.Now()
 				database.DB.Save(&products[index])
+			}
 
+			var ultimoHistorial models.PriceHistory
+			errHistorial := database.DB.Where("product_id = ?", products[index].ProductID).Order("register_date desc").First(&ultimoHistorial).Error
+
+			if errHistorial != nil || time.Since(ultimoHistorial.RegisterDate) >= 12*time.Hour {
 				nuevoPrecio := models.PriceHistory{
 					ProductID:    products[index].ProductID,
 					Price:        precioFloat,

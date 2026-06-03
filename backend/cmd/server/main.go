@@ -17,8 +17,8 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/auth"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/config"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
-	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/handlers"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
+	handlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
 )
 
 var logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -87,6 +87,7 @@ func main() {
 			// Rutas del tracker
 			protected.POST("/track", handlers.AddProduct)
 			protected.GET("/products/search", handlers.SearchProducts)
+			protected.POST("/tracking", handlers.UpdateTracking)
 		}
 	}
 
