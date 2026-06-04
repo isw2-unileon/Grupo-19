@@ -23,9 +23,18 @@ export default function ProductView() {
     const [loading, setLoading] = useState(true);
     const [targetPrice, setTargetPrice] = useState("");
     const [isFollowing, setIsFollowing] = useState(false);
-    const [, setSavedTargetPrice] = useState<number | null>(null);
+    const [savedTargetPrice, setSavedTargetPrice] = useState<number | null>(null);
     const [isUpdating, setIsUpdating] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [, setMessage] = useState("");
+    const [, setOpacity] = useState(0);
+
+    const showMessage = (text: string) => {
+        setMessage(text);
+        setOpacity(1);
+        setTimeout(() => setOpacity(0), 3000);
+        setTimeout(() => setMessage(""), 3500);
+    };
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -48,6 +57,13 @@ export default function ProductView() {
                 if (trackingResponse.ok) {
                     const trackData = await trackingResponse.json();
                     setIsFollowing(trackData.is_following);
+
+                    if (trackData.target_price && trackData.target_price > 0) {
+                        setSavedTargetPrice(trackData.target_price);
+                        setTargetPrice(trackData.target_price.toString());
+                    } else {
+                        setTargetPrice(product?.LowestPrice?.toString() || "");
+                    }
                 }
             } catch (error) {
                 console.error("Error al obtener el producto:", error);
@@ -68,10 +84,12 @@ export default function ProductView() {
                     method: "DELETE",
                     credentials: "include"
                 });
+
                 if (response.ok) {
                     setIsFollowing(false);
                     setSavedTargetPrice(null);
-                    alert("Has dejado de seguir este producto");
+                } else {
+                    console.error("Error al borrar el seguimiento:", response.status);
                 }
             } else {
                 const response = await fetch("http://localhost:8080/api/tracking", {
@@ -86,7 +104,6 @@ export default function ProductView() {
                 });
                 if (response.ok) {
                     setIsFollowing(true);
-                    alert("¡Ahora sigues este producto!");
                 }
             }
         } catch (error) {
@@ -124,29 +141,28 @@ export default function ProductView() {
 
     const handleCreateAlert = async () => {
         if (!product) return;
-        if (!targetPrice) {
-            alert("Por favor, introduce un precio objetivo.");
-            return;
-        }
+
+        const priceToSet = targetPrice ? parseFloat(targetPrice) : product.LowestPrice;
+
         try {
             const response = await fetch("http://localhost:8080/api/tracking", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
                     product_id: product.ProductID,
-                    target_price: parseFloat(targetPrice)
+                    target_price: priceToSet,
+                    notify_price_changes: true
                 })
             });
 
             if (response.ok) {
-                alert(`¡Alerta creada! Te avisaremos cuando baje de ${targetPrice}€`);
-                setTargetPrice("");
+                setSavedTargetPrice(priceToSet);
+                setIsFollowing(true);
+                showMessage(`Alerta establecida en ${priceToSet}€`);
             }
         } catch (error) {
-            console.error("Error creando alerta:", error);
+            showMessage("Error al guardar la alerta");
         }
     };
 
@@ -182,7 +198,7 @@ export default function ProductView() {
                     {/* Botones de Accion */}
                     <div style={{ display: "flex", gap: "1rem" }}>
                         <button
-                            onClick={!isFollowing ? handleFollowProduct : undefined}
+                            onClick={handleFollowProduct}
                             style={{
                                 ...btnStylePrimary,
                                 backgroundColor: isFollowing ? "#111827" : "#FACC15",
@@ -197,17 +213,15 @@ export default function ProductView() {
                             )}
                         </button>
                         <button
-                            className="btn-wrapper" /* Añadimos la clase aquí */
+                            className="btn-wrapper"
                             style={{ ...btnStyleSecondary, position: "relative", overflow: "hidden" }}
                             onClick={handleUpdatePrice}
                             disabled={isUpdating}
                         >
-                            {/* La barra de progreso (detrás del texto gracias al z-index -1) */}
                             {isUpdating && (
                                 <div className="progress-bar-full" style={{ width: `${progress}%` }}></div>
                             )}
 
-                            {/* Contenido del botón */}
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", position: "relative" }}>
                                 <span className={isUpdating ? "spinning-reverse" : ""} style={{ display: "inline-block" }}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -229,11 +243,42 @@ export default function ProductView() {
                             <div style={{ fontSize: "1rem", color: "#059669", fontWeight: "600" }}>Histórico más bajo: {product.LowestPrice} €</div>
                         </div>
 
-                        <div style={{ flex: "1 1 45%", display: "flex", flexDirection: "column", gap: "0.5rem", justifyContent: "center" }}>
-                            <label style={{ fontWeight: "600", color: "#4B5563", fontSize: "0.95rem" }}>Avisarme cuando baje de:</label>
-                            <div style={{ display: "flex", gap: "0.5rem" }}>
-                                <input type="number" value={targetPrice} onChange={(e) => setTargetPrice(e.target.value)} placeholder="Ej: 20.00" style={{ flex: 1, padding: "0.75rem", borderRadius: "6px", border: "1px solid #D1D5DB" }} />
-                                <button style={btnStyleAlert} onClick={handleCreateAlert}>Crear</button>
+                        <div style={{ flex: "1 1 45%", display: "flex", flexDirection: "column", gap: "0rem", justifyContent: "center" }}>
+                            <label style={{ fontWeight: "600", color: "#4B5563", fontSize: "0.95rem", marginBottom: "0.5rem" }}>
+                                Establecer precio de aviso (€):
+                            </label>
+
+                            <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
+
+                                <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                                    <input
+                                        type="number"
+                                        value={targetPrice}
+                                        onChange={(e) => setTargetPrice(e.target.value)}
+                                        placeholder={`${product.LowestPrice}`}
+                                        style={{
+                                            padding: "0.75rem",
+                                            borderRadius: savedTargetPrice ? "6px 6px 0 0" : "6px",
+                                            border: "1px solid #D1D5DB",
+                                            width: "100%",
+                                            boxSizing: "border-box"
+                                        }}
+                                    />
+
+                                    {savedTargetPrice && (
+                                        <div className="alert-active-block" style={{ width: "100%", boxSizing: "border-box" }}>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                                            </svg>
+                                            Alerta configurada
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button style={btnStyleAlert} onClick={handleCreateAlert}>
+                                    {savedTargetPrice ? "Actualizar" : "Crear"}
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Animación de giro antihorario */
 @keyframes spin-reverse {
     from {
         transform: rotate(0deg);
@@ -16,15 +15,12 @@
     animation: spin-reverse 1s linear infinite;
 }
 
-/* El contenedor del botón */
 .btn-wrapper {
     position: relative;
     overflow: hidden;
     z-index: 1;
-    /* El botón es el contexto de apilamiento */
 }
 
-/* La barra ahora ocupa toda la altura (top 0, bottom 0) */
 .progress-bar-full {
     position: absolute;
     top: 0;
@@ -32,7 +28,23 @@
     left: 0;
     background-color: #FACC15;
     transition: width 0.3s ease-out;
-    /* Más fluido */
     z-index: -1;
-    /* Detrás del texto */
+}
+
+.alert-active-block {
+    padding: 10px;
+    background-color: #FEF9C3;
+    border: 1px solid #FACC15;
+    color: #dcb415;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
 }
