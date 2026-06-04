@@ -205,33 +205,37 @@ export default function ProductView() {
                                 color: isFollowing ? "#FACC15" : "#111827",
                                 border: isFollowing ? "2px solid #FACC15" : "none"
                             }}
+                            title={isFollowing ? "Dejar de seguir" : "Seguir producto"}
                         >
-                            {isFollowing ? (
-                                <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg> Siguiendo</>
-                            ) : (
-                                <><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg> Seguir producto</>
-                            )}
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill={isFollowing ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                            </svg>
                         </button>
                         <button
                             className="btn-wrapper"
                             style={{ ...btnStyleSecondary, position: "relative", overflow: "hidden" }}
                             onClick={handleUpdatePrice}
                             disabled={isUpdating}
+                            title="Actualizar precio"
                         >
-                            {isUpdating && (
-                                <div className="progress-bar-full" style={{ width: `${progress}%` }}></div>
-                            )}
-
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", position: "relative" }}>
-                                <span className={isUpdating ? "spinning-reverse" : ""} style={{ display: "inline-block" }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                        <path d="M3 3v5h5" />
-                                    </svg>
-                                </span>
-                                {isUpdating ? "Actualizando..." : "Actualizar precio"}
-                            </div>
+                            {isUpdating && <div className="progress-bar-full" style={{ width: `${progress}%` }}></div>}
+                            <span className={isUpdating ? "spinning" : ""} style={{ display: "inline-block" }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                                </svg>
+                            </span>
                         </button>
+                        <a
+                            href={product.SourceURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={btnStyleLink}
+                            title="Ir al sitio web"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+                            </svg>
+                        </a>
                     </div>
 
                     <hr style={{ border: "none", borderTop: "1px solid #eaeaea", margin: "0" }} />
@@ -300,4 +304,5 @@ export default function ProductView() {
 
 const btnStylePrimary = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1.5rem", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem", flex: 1, transition: "0.2s" };
 const btnStyleSecondary = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1.5rem", backgroundColor: "#F3F4F6", color: "#374151", border: "1px solid #E5E7EB", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem", flex: 1 };
+const btnStyleLink = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1.5rem", backgroundColor: "#F3F4F6", color: "#374151", border: "1px solid #E5E7EB", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem", flex: 1, textDecoration: "none" };
 const btnStyleAlert = { display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "0.75rem 1.25rem", backgroundColor: "#111827", color: "#FACC15", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "bold", fontSize: "1rem" };
