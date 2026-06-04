@@ -19,6 +19,7 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 	notificationHandlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/notifications"
+	handlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
 	producthandlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
 )
 
@@ -95,6 +96,14 @@ func main() {
 			protected.GET("/user/notifications", notificationHandlers.GetUserNotifications)
 			protected.PATCH("/user/notifications/:id", notificationHandlers.MarkNotificationAsRead)
 			protected.DELETE("/user/notifications/:id", notificationHandlers.DeleteNotification)
+
+			protected.POST("/track", handlers.AddProduct)
+			protected.GET("/products/search", handlers.SearchProducts)
+			protected.GET("/products/:id", handlers.GetProductByID)
+			protected.DELETE("/tracking/:id", handlers.UnfollowProduct)
+			protected.POST("/tracking", handlers.UpdateTracking)
+			protected.GET("/check-tracking/:id", handlers.CheckTracking)
+
 		}
 	}
 

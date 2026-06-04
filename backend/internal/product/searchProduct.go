@@ -96,3 +96,21 @@ func SearchProducts(c *gin.Context) {
 	// Return the product list with refreshed prices
 	c.JSON(http.StatusOK, products)
 }
+
+// GetProductByID obtiene los detalles de un producto específico
+func GetProductByID(c *gin.Context) {
+	idParam := c.Param("id")
+	productID, err := strconv.Atoi(idParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de producto inválido"})
+		return
+	}
+
+	var product models.Product
+	if err := database.DB.First(&product, productID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Producto no encontrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
+}

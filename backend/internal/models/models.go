@@ -28,10 +28,10 @@ type Product struct {
 
 // Tracking represent the User intention of being notificated when price drop
 type Tracking struct {
-	UserID             uint `gorm:"primaryKey;autoIncrement:false"` // PK, FK
-	ProductID          uint `gorm:"primaryKey;autoIncrement:false"` // PK, FK
-	NotifyPriceChanges bool
-	NotifyTargetPrice  float64 `gorm:"type:decimal(10,2)"`
+	UserID             uint    `gorm:"primaryKey;autoIncrement:false" json:"user_id"`
+	ProductID          uint    `gorm:"primaryKey;autoIncrement:false" json:"product_id"`
+	NotifyPriceChanges bool    `json:"notify_price_changes"`
+	NotifyTargetPrice  float64 `gorm:"type:decimal(10,2)" json:"target_price"`
 	TrackingStartDate  time.Time
 }
 
