@@ -1,1 +1,50 @@
 @import "tailwindcss";
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinning {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+.btn-wrapper {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.progress-bar-full {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background-color: #FACC15;
+    transition: width 0.3s ease-out;
+    z-index: -1;
+}
+
+.alert-active-block {
+    padding: 10px;
+    background-color: #FEF9C3;
+    border: 1px solid #FACC15;
+    color: #dcb415;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+}

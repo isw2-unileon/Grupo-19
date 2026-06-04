@@ -96,7 +96,7 @@ func Extract(targetURL string) (*ProductData, error) {
 
 	product := &ProductData{URL: targetURL}
 
-	// Titulo
+	// Title
 	if title, exists := doc.Find("meta[property='og:title']").Attr("content"); exists && title != "" {
 		product.Title = strings.TrimSpace(title)
 	} else if title, exists := doc.Find("meta[name='og:title']").Attr("content"); exists && title != "" { // Worten
@@ -109,7 +109,7 @@ func Extract(targetURL string) (*ProductData, error) {
 		product.Title = strings.TrimSpace(doc.Find("title").Text())
 	}
 
-	// Imagen
+	// Image
 	if strings.Contains(targetURL, "worten") {
 		if img, exists := doc.Find("meta[name='og:image']").Attr("content"); exists && img != "" {
 			if strings.HasPrefix(img, "/") {
@@ -150,11 +150,11 @@ func Extract(targetURL string) (*ProductData, error) {
 		}
 	}
 
-	// Precio
+	// Price
 	if price, exists := doc.Find("meta[property='product:price:amount']").Attr("content"); exists && price != "" {
 		product.Price = price
 	} else {
-		// Probamos varios selectores de diferentes tiendas
+		// Tags from different shops
 		precioCrudo := doc.Find("#pdp-price-current-integer").Parent().Text() // PCComponentes
 
 		if precioCrudo == "" { // Amazon
@@ -219,11 +219,9 @@ func Extract(targetURL string) (*ProductData, error) {
 			doc.Find("script[type='application/ld+json']").Each(func(i int, s *goquery.Selection) {
 				textoScript := s.Text()
 
-				// Usamos (?i) para que la Regex ignore mayúsculas y minúsculas al buscar "price"
 				rePrice := regexp.MustCompile(`(?i)"price"\s*:\s*"?([0-9.,]+)"?`)
 				if matchPrice := rePrice.FindStringSubmatch(textoScript); len(matchPrice) > 1 {
 					precioCrudo = matchPrice[1]
-					// Limpiamos por si acaso viene con coma en el JSON
 					precioCrudo = strings.ReplaceAll(precioCrudo, ",", ".")
 				}
 			})
@@ -255,7 +253,7 @@ func Extract(targetURL string) (*ProductData, error) {
 			}
 		}
 
-		// Extraemos solo el número con regex
+		// Using Regex for extracting the price
 		re := regexp.MustCompile(`\d+(?:[.,]\d+)?`)
 		precioLimpio := re.FindString(precioCrudo)
 
@@ -264,7 +262,7 @@ func Extract(targetURL string) (*ProductData, error) {
 		}
 	}
 
-	// Descripcion
+	// Description
 	if strings.Contains(targetURL, "druni") {
 		descDruni := doc.Find(".product.attribute.description .value").Text()
 		if descDruni != "" {
