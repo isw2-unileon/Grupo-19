@@ -18,10 +18,14 @@ export interface Product {
 type ResultsGridProps = {
   products?: Product[];
   isLoading?: boolean;
+
+  // To be able to customize messages
+  emptyTitle?: string;
+  emptySubtitle?: string;
 };
 
 // ResultsGrid build the grid of products
-export default function ResultsGrid({ products = [], isLoading = false }: ResultsGridProps) {
+export default function ResultsGrid({ products = [], isLoading = false, emptyTitle = "No se ha realizado ninguna búsqueda todavía.", emptySubtitle = "¡Introduce un enlace o nombre de un producto para empezar a rastrear precios!" }: ResultsGridProps) {
   const navigate = useNavigate();
 
   // Pagination logic
@@ -148,9 +152,8 @@ export default function ResultsGrid({ products = [], isLoading = false }: Result
       {/* Empty array check */}
       {!products || products.length === 0 ? (
         <div style={styles.emptyContainer}>
-          {/* NUEVO: Texto cambiado */}
-          <p style={styles.emptyText}>No se ha realizado ninguna búsqueda todavía.</p>
-          <span style={styles.emptySubtext}>¡Introduce un enlace o nombre de un producto para empezar a rastrear precios!</span>
+          <p style={styles.emptyText}>{emptyTitle}</p>
+          <span style={styles.emptySubtext}>{emptySubtitle}</span>
         </div>
       ) : (
         <>
