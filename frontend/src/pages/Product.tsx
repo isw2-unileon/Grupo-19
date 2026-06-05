@@ -98,7 +98,7 @@ export default function ProductView() {
                     credentials: "include",
                     body: JSON.stringify({
                         product_id: product.ProductID,
-                        target_price: 0.01,
+                        target_price: 0,
                         notify_price_changes: true
                     })
                 });
