@@ -111,22 +111,26 @@ func AddProduct(c *gin.Context) {
 		}
 	}
 
-	var tracking models.Tracking
-	errTracking := database.DB.Where("user_id = ? AND product_id = ?", usuarioID, producto.ProductID).First(&tracking).Error
-
-	if errTracking != nil {
-		tracking = models.Tracking{
-			UserID:             usuarioID,
-			ProductID:          producto.ProductID,
-			NotifyPriceChanges: true,
-			NotifyTargetPrice:  0.0,
-			TrackingStartDate:  time.Now(),
-		}
-		database.DB.Create(&tracking)
-	}
-
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Operación realizada con éxito en PostgreSQL",
 		"data":    producto, // Return the model
 	})
+}
+
+func GetPriceHistory(c *gin.Context) {
+	productID := c.Param("id")
+	daysStr := c.DefaultQuery("days", "7")
+
+	days, err := strconv.Atoi(daysStr)
+	if err != nil {
+		days = 7
+	}
+
+	limitDate := time.Now().AddDate(0, 0, -days)
+
+	var history []models.PriceHistory
+	database.DB.Where("product_id = ? AND register_date >= ?", productID, limitDate).
+		Order("register_date asc").Find(&history)
+
+	c.JSON(http.StatusOK, history)
 }

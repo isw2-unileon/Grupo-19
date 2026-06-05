@@ -73,7 +73,6 @@ func checkSavedProductsPrices() {
 
 		// Run the scraper by passing it the URL
 		scrapedData, err := scraper.Extract(productos[i].SourceURL)
-		scrapedData = &scraper.ProductData{Price: "750.00"}
 		if err != nil {
 			slog.Error("[CRON] El scraper ha fallado para esta URL", "url", productos[i].SourceURL, "error", err)
 			continue

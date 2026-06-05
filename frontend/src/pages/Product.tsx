@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/general/Header";
 import Footer from "../components/general/Footer";
-
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 export interface Product {
     ProductID: number;
     Name: string;
@@ -14,6 +14,10 @@ export interface Product {
     CreatedBy: number;
     CreateAt: string;
     UpdatedAt: string;
+}
+export interface PriceHistory {
+    Price: number;
+    RegisterDate: string;
 }
 
 export default function ProductView() {
@@ -28,6 +32,8 @@ export default function ProductView() {
     const [progress, setProgress] = useState(0);
     const [, setMessage] = useState("");
     const [, setOpacity] = useState(0);
+    const [history, setHistory] = useState<PriceHistory[]>([]);
+    const [timeRange, setTimeRange] = useState(7);
 
     const showMessage = (text: string) => {
         setMessage(text);
@@ -37,43 +43,63 @@ export default function ProductView() {
     };
 
     useEffect(() => {
-        const fetchProduct = async () => {
+        const loadProductData = async () => {
             try {
-                // Cargar producto
-                const response = await fetch(`http://localhost:8080/api/products/${id}`, {
+                setLoading(true);
+                setIsFollowing(false);
+                setSavedTargetPrice(null);
+
+                const response = await fetch(`http://localhost:8080/api/products/${id}`, { credentials: "include" });
+                if (!response.ok) throw new Error("Producto no encontrado");
+
+                const productData = await response.json();
+                setProduct(productData);
+
+                const trackingResponse = await fetch(`http://localhost:8080/api/check-tracking/${productData.ProductID}`, {
                     credentials: "include"
                 });
-
-                // Comprobar si ya lo sigue
-                const trackingResponse = await fetch(`http://localhost:8080/api/check-tracking/${id}`, {
-                    credentials: "include"
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setProduct(data);
-                }
 
                 if (trackingResponse.ok) {
                     const trackData = await trackingResponse.json();
-                    setIsFollowing(trackData.is_following);
+                    setIsFollowing(true);
+                    setIsFollowing(!!trackData.is_following);
 
                     if (trackData.target_price && trackData.target_price > 0) {
                         setSavedTargetPrice(trackData.target_price);
                         setTargetPrice(trackData.target_price.toString());
                     } else {
-                        setTargetPrice(product?.LowestPrice?.toString() || "");
+                        setTargetPrice(productData.LowestPrice?.toString() || "");
                     }
                 }
             } catch (error) {
-                console.error("Error al obtener el producto:", error);
+                console.error("Error al inicializar vista:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchProduct();
+        if (id) loadProductData();
     }, [id]);
+
+    const fetchHistory = async (days: number) => {
+        try {
+            const res = await fetch(`http://localhost:8080/api/products/${id}/history?days=${days}`, {
+                credentials: "include"
+            });
+
+            if (!res.ok) throw new Error("No autorizado");
+
+            const data = await res.json();
+            setHistory(Array.isArray(data) ? data : []);
+        } catch (error) {
+            console.error("Error al cargar historial:", error);
+            setHistory([]);
+        }
+    };
+    useEffect(() => {
+        fetchHistory(timeRange);
+    }, [id, timeRange]);
+
 
     const handleFollowProduct = async () => {
         if (!product) return;
@@ -195,7 +221,7 @@ export default function ProductView() {
                         </div>
                     </div>
 
-                    {/* Botones de Accion */}
+                    {/* Action Buttons */}
                     <div style={{ display: "flex", gap: "1rem" }}>
                         <button
                             onClick={handleFollowProduct}
@@ -240,7 +266,7 @@ export default function ProductView() {
 
                     <hr style={{ border: "none", borderTop: "1px solid #eaeaea", margin: "0" }} />
 
-                    {/* Precios y Alerta */}
+                    {/* Price & Alerts */}
                     <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
                         <div style={{ flex: "1 1 45%", display: "flex", flexDirection: "column", gap: "0.75rem", justifyContent: "center" }}>
                             <div style={{ fontSize: "1.75rem", fontWeight: "bold", color: "#111827" }}>{product.LastPrice} €</div>
@@ -289,12 +315,49 @@ export default function ProductView() {
 
                     <hr style={{ border: "none", borderTop: "1px solid #eaeaea", margin: "0" }} />
 
-                    {/* Descripción */}
+                    {/* Description */}
                     <div>
                         <h3>Descripción del producto</h3>
                         <p style={{ whiteSpace: "pre-wrap", color: "#4B5563", lineHeight: "1.7", backgroundColor: "#F9FAFB", padding: "1.5rem", borderRadius: "8px" }}>{product.description}</p>
                     </div>
 
+                    {/* Graph */}
+                    <div style={{ marginTop: "2rem", padding: "1.5rem", backgroundColor: "#fff", borderRadius: "8px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                            <h3>Historial de precios</h3>
+                            <div>
+                                <button
+                                    onClick={() => setTimeRange(7)}
+                                    style={{ fontWeight: timeRange === 7 ? "bold" : "normal", marginRight: "10px" }}
+                                >7 Días</button>
+                                <button
+                                    onClick={() => setTimeRange(30)}
+                                    style={{ fontWeight: timeRange === 30 ? "bold" : "normal" }}
+                                >30 Días</button>
+                            </div>
+                        </div>
+                        <div style={{ width: "100%", height: "300px" }}>
+                            {loading ? (
+                                <p>Cargando datos...</p>
+                            ) : history.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={history}>
+                                        <XAxis
+                                            dataKey="RegisterDate"
+                                            tickFormatter={(str) => (str && str.length >= 10 ? str.slice(5, 10) : str)}
+                                        />
+                                        <YAxis domain={['auto', 'auto']} />
+                                        <Tooltip />
+                                        <Line type="monotone" dataKey="Price" stroke="#FACC15" strokeWidth={3} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                                    <p>No hay historial disponible para este periodo.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </main>
             <Footer />
