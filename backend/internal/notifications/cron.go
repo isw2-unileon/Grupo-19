@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log/slog"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -13,7 +14,7 @@ import (
 
 // init() function runs automatically when the server starts.
 func init() {
-	intervalo := 30 * time.Minute
+	intervalo := 1 * time.Hour
 
 	go func() {
 		slog.Info("[CRON INTERNO] Esperando a que la base de datos esté lista...")
@@ -21,7 +22,6 @@ func init() {
 		// ACTIVE CHECK LOOP (Maximum 30 attempts, one per second)
 		dbLista := false
 		for i := 0; i < 30; i++ {
-			// We check if the DB object has already been initialized by main.go and attempt a quick check.
 			if database.DB != nil {
 				var dePrueba int
 				err := database.DB.Raw("SELECT 1").Scan(&dePrueba).Error
@@ -30,11 +30,9 @@ func init() {
 					break
 				}
 			}
-
 			time.Sleep(1 * time.Second)
 		}
 
-		// After 30 seconds, we'll cancel for security reasons.
 		if !dbLista {
 			slog.Error("[CRON INTERNO] CRÍTICO: No se pudo conectar a la BBDD tras 30 segundos. Cron abortado.")
 			return
@@ -52,9 +50,9 @@ func init() {
 	}()
 }
 
-// checkSavedProductsPrices searches for saved products and checks if their prices have dropped.
+// checkSavedProductsPrices It searches and analyzes the products that users actively follow.
 func checkSavedProductsPrices() {
-	slog.Info("[CRON] Pasada periódica: Comprobando precios de productos guardados...")
+	slog.Info("[CRON] Pasada horaria: Comprobando precios de productos activos en seguimiento...")
 
 	if database.DB == nil {
 		slog.Error("[CRON] La conexión a la base de datos aún no está lista")
@@ -62,56 +60,66 @@ func checkSavedProductsPrices() {
 	}
 
 	var productos []models.Product
-	// searching all products that are registered in the system
-	if err := database.DB.Find(&productos).Error; err != nil {
-		slog.Error("[CRON] Error al recuperar productos de la BBDD", "error", err)
+
+	// Select unique products that have at least one associated record in the 'trackings' table
+	err := database.DB.Distinct("products.*").
+		Joins("JOIN trackings ON trackings.product_id = products.product_id").
+		Find(&productos).Error
+	if err != nil {
+		slog.Error("[CRON] Error al recuperar productos activos de la BBDD", "error", err)
 		return
 	}
 
-	for i := range productos {
-		slog.Info("[CRON] Analizando artículo", "id", productos[i].ProductID, "name", productos[i].Name)
+	slog.Info("[CRON]", "total_productos_a_scrapear", len(productos))
 
-		// Run the scraper by passing it the URL
+	for i := range productos {
+		slog.Info("[CRON] Analizando artículo activo", "id", productos[i].ProductID, "name", productos[i].Name)
+
+		// We run the scraper by passing it the URL
 		scrapedData, err := scraper.Extract(productos[i].SourceURL)
 		if err != nil {
 			slog.Error("[CRON] El scraper ha fallado para esta URL", "url", productos[i].SourceURL, "error", err)
+			// Dejamos también un pequeño respiro de cortesía tras un error por seguridad
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
-		// clean the price text.
+		// Clean up the formatting of the price text.
 		precioLimpio := strings.Replace(scrapedData.Price, ",", ".", 1)
 		nuevoPrecio, err := strconv.ParseFloat(precioLimpio, 64)
 		if err != nil || nuevoPrecio == 0 {
 			slog.Error("[CRON] El precio extraído no es válido", "raw", scrapedData.Price)
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
 		precioViejo := productos[i].LastPrice
 		haCambiado := false
 
-		// If the scraper price is different, update the record
+		// If the price on the website is different from the saved price, we update it.
 		if nuevoPrecio != precioViejo {
 			productos[i].LastPrice = nuevoPrecio
 			haCambiado = true
 		}
 
-		// We check if it's the all-time low
+		// We check if it is the all-time low
 		if productos[i].LowestPrice == 0 || nuevoPrecio < productos[i].LowestPrice {
 			productos[i].LowestPrice = nuevoPrecio
 			haCambiado = true
 		}
 
-		// If the price has changed we save it
+		// If there have been any structural changes, we save them in the database.
 		if haCambiado {
 			productos[i].UpdatedAt = time.Now()
 			if err := database.DB.Save(&productos[i]).Error; err != nil {
 				slog.Error("[CRON] Error al guardar el nuevo precio en la BBDD", "id", productos[i].ProductID, "error", err)
+				time.Sleep(2 * time.Second)
 				continue
 			}
 
-			// If the price has dropped generate the notification
+			// If the website price is lower than the price of our database, we trigger alerts
 			if nuevoPrecio < precioViejo {
-				slog.Info("⬇️ ¡Precio reducido detectado en segundo plano!", "product", productos[i].Name, "old", precioViejo, "new", nuevoPrecio)
+				slog.Info("¡Precio reducido detectado en segundo plano!", "product", productos[i].Name, "old", precioViejo, "new", nuevoPrecio)
 
 				err := EvaluatePriceDropAndNotify(productos[i].ProductID, nuevoPrecio, precioViejo)
 				if err != nil {
@@ -120,8 +128,10 @@ func checkSavedProductsPrices() {
 			}
 		}
 
-		time.Sleep(2 * time.Second)
+		// To space out the requests
+		tiempoAleatorio := 3 + rand.Intn(6)
+		time.Sleep(time.Duration(tiempoAleatorio) * time.Second)
 	}
 
-	slog.Info("[CRON] Pasada periódica finalizada con éxito.")
+	slog.Info("[CRON] Pasada horaria finalizada con éxito.")
 }
