@@ -97,11 +97,11 @@ func main() {
 			protected.PATCH("/user/notifications/:id", notificationHandlers.MarkNotificationAsRead)
 			protected.DELETE("/user/notifications/:id", notificationHandlers.DeleteNotification)
 
-			protected.POST("/track", handlers.AddProduct)
-			protected.GET("/products/search", handlers.SearchProducts)
+			// protected.POST("/track", handlers.AddProduct)
+			// protected.GET("/products/search", handlers.SearchProducts)
 			protected.GET("/products/:id", handlers.GetProductByID)
 			protected.DELETE("/tracking/:id", handlers.UnfollowProduct)
-			protected.POST("/tracking", handlers.UpdateTracking)
+			// protected.POST("/tracking", handlers.UpdateTracking)
 			protected.GET("/check-tracking/:id", handlers.CheckTracking)
 
 		}
