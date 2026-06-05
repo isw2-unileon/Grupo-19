@@ -104,6 +104,7 @@ func main() {
 			// protected.POST("/tracking", handlers.UpdateTracking)
 			protected.GET("/check-tracking/:id", handlers.CheckTracking)
 			protected.GET("/user/saved-products", handlers.GetSavedProducts)
+			protected.GET("/products/:id/history", handlers.GetPriceHistory)
 
 		}
 	}

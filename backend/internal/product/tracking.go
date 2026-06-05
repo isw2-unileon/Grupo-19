@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -46,6 +47,7 @@ func UpdateTracking(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al crear la alerta de precio"})
 			return
 		}
+		updateUserSavedProducts(usuarioID, req.ProductID, true)
 	} else {
 		tracking.NotifyTargetPrice = req.TargetPrice
 		tracking.NotifyPriceChanges = true
@@ -82,11 +84,49 @@ func CheckTracking(c *gin.Context) {
 func UnfollowProduct(c *gin.Context) {
 	userIDContext, _ := c.Get("userID")
 	usuarioID := userIDContext.(uint)
-	productID := c.Param("id")
+	productIDStr := c.Param("id")
+
+	productID64, err := strconv.ParseUint(productIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de producto inválido"})
+		return
+	}
+
+	productID := uint(productID64)
 
 	if err := database.DB.Where("user_id = ? AND product_id = ?", usuarioID, productID).Delete(&models.Tracking{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al dejar de seguir"})
 		return
 	}
+
+	updateUserSavedProducts(usuarioID, productID, false)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Producto eliminado de tus seguimientos"})
+}
+
+func updateUserSavedProducts(userID uint, productID uint, add bool) error {
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return err
+	}
+
+	if add {
+		// Añadir si no existe
+		for _, id := range user.SavedProducts {
+			if id == int64(productID) {
+				return nil
+			}
+		}
+		user.SavedProducts = append(user.SavedProducts, int64(productID))
+	} else {
+		// Eliminar
+		newArray := []int64{}
+		for _, id := range user.SavedProducts {
+			if id != int64(productID) {
+				newArray = append(newArray, id)
+			}
+		}
+		user.SavedProducts = newArray
+	}
+	return database.DB.Save(&user).Error
 }
