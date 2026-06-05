@@ -1,15 +1,20 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 // User respresent each user of the app
 type User struct {
-	UserID     uint `gorm:"primaryKey;autoIncrement"` // PK
-	Username   string
-	Email      string
-	Password   string
-	UserType   string
-	RegisterAt time.Time
+	UserID        uint `gorm:"primaryKey;autoIncrement"` // PK
+	Username      string
+	Email         string
+	Password      string
+	UserType      string
+	RegisterAt    time.Time
+	SavedProducts pq.Int64Array `gorm:"type:integer[]"`
 }
 
 // Product represent the products the scapper have benn asked to scrap
