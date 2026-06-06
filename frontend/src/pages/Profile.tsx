@@ -20,7 +20,8 @@ export default function Profile() {
   const [profileOpacity, setProfileOpacity] = useState(0);
   const [passwordOpacity, setPasswordOpacity] = useState(0);
 
-  // Funciones para mostrar mensajes que desaparecen (como en Login)
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
   const showProfileMessage = (text: string, isError: boolean) => {
     setProfileMsg({ text, isError });
     setProfileOpacity(1);
@@ -39,7 +40,7 @@ export default function Profile() {
   useEffect(() => {
     async function fetchUserProfile() {
       try {
-        const response = await fetch("http://localhost:8080/api/user/profile", {
+        const response = await fetch(`${API_URL}/api/user/profile`, {
           method: "GET",
           credentials: "include",
         });
@@ -68,7 +69,7 @@ export default function Profile() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:8080/api/user/profile", {
+      const response = await fetch(`${API_URL}/api/user/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +90,7 @@ export default function Profile() {
     }
   };
 
-  // ACTUALIZAR CONTRASEÑA (PUT)
+  // Update password (PUT)
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -99,7 +100,7 @@ export default function Profile() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/user/profile/password", {
+      const response = await fetch(`${API_URL}/api/user/profile/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

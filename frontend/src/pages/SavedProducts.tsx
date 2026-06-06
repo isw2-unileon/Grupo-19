@@ -8,12 +8,13 @@ import MainLayout from "../components/mainpage/MainLayout";
 export default function SavedProducts() {
     const [savedProducts, setSavedProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
     useEffect(() => {
         const fetchSavedProducts = async () => {
             try {
                 // Make petition
-                const response = await fetch("http://localhost:8080/api/user/saved-products", {
+                const response = await fetch(`${API_URL}/api/user/saved-products`, {
                     method: "GET",
                     credentials: "include",
                 });

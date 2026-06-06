@@ -14,13 +14,13 @@ function ProtectedRoute({ isAuth }: { isAuth: boolean }) {
 
 export default function App() {
   const [isAuth, setIsAuth] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Estado de carga mientras comprueba el token
+  const [isLoading, setIsLoading] = useState(true);
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   useEffect(() => {
     async function checkSession() {
       try {
-        // Llamamos al endpoint de perfil para ver si el backend nos reconoce
-        const response = await fetch("http://localhost:8080/api/user/profile", {
+        const response = await fetch(`${API_URL}/api/user/profile`, {
           method: "GET",
           credentials: "include",
         });
@@ -41,7 +41,7 @@ export default function App() {
     checkSession();
   }, []);
 
-  // Mientras comprueba la cookie, mostramos una pantalla limpia para que no parpadee el Login
+  // Clean interface while cookie is checked
   if (isLoading) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "sans-serif" }}>

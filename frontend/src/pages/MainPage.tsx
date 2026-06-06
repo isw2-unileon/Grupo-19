@@ -9,6 +9,7 @@ import Footer from "../components/general/Footer";
 export default function MainPage() {
   const [productsList, setProductsList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
   // Method called by SearchBar when user press "Añadir" or Enter
   const procesarBusqueda = async (texto: string, esEnlace: boolean) => {
@@ -16,7 +17,7 @@ export default function MainPage() {
     if (esEnlace) {
       console.log("Detectado un ENLACE. Llamando al scraper con:", texto);
       try {
-        const response = await fetch("http://localhost:8080/api/track", {
+        const response = await fetch(`${API_URL}/api/track`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -37,7 +38,7 @@ export default function MainPage() {
     } else {
       console.log("Detectado TEXTO NORMAL. Buscando en base de datos:", texto);
       try {
-        const response = await fetch(`http://localhost:8080/api/products/search?q=${encodeURIComponent(texto)}`, {
+        const response = await fetch(`${API_URL}/api/products/search?q=${encodeURIComponent(texto)}`, {
           method: "GET",
           credentials: "include",
         });

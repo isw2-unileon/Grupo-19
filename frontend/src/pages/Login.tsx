@@ -15,6 +15,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [message, setMessage] = useState("");
   const [opacity, setOpacity] = useState(0);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
   // Function to show messages
   const showMessage = (text: string) => {
     setMessage(text);
@@ -34,7 +36,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     if (isLogin) {
       // Login API call
       try {
-        const response = await fetch("http://localhost:8080/api/login", {
+        const response = await fetch(`${API_URL}/api/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -62,7 +64,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
       // Register API call
       try {
-        const response = await fetch("http://localhost:8080/api/register", {
+        const response = await fetch(`${API_URL}/api/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

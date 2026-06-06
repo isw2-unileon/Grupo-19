@@ -32,6 +32,8 @@ export default function ResultsGrid({ products = [], isLoading = false, emptyTit
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
   useEffect(() => {
     setCurrentPage(1);
   }, [products]);
@@ -84,7 +86,7 @@ export default function ResultsGrid({ products = [], isLoading = false, emptyTit
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/tracking", {
+      const response = await fetch(`${API_URL}/api/tracking`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

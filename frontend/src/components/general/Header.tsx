@@ -5,14 +5,15 @@ import logoImage from "../../assets/Logo.png";
 export default function Header() {
     const iconStyle = { width: "24px", height: "24px", cursor: "pointer", color: "#1f2937" };
     const navigate = useNavigate();
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-    // Estado para controlar la visibilidad del modal
+    // Control modal visibility
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-    // Función para manejar el cierre de sesión real
+    // Method to handle logout
     const handleLogout = async () => {
         try {
-            const response = await fetch("http://localhost:8080/api/logout", {
+            const response = await fetch(`${API_URL}/api/logout`, {
                 method: "POST",
                 credentials: "include",
             });
@@ -21,26 +22,26 @@ export default function Header() {
                 window.location.href = "/";
             } else {
                 console.error("Error al intentar cerrar sesión");
-                setShowLogoutModal(false); // Ocultamos el modal si falla
+                setShowLogoutModal(false);
             }
         } catch (error) {
             console.error("Error de red al cerrar sesión:", error);
-            setShowLogoutModal(false); // Ocultamos el modal si falla
+            setShowLogoutModal(false);
         }
     };
 
     return (
         <>
             <header style={styles.header}>
-                {/* Zona Izquierda: Logo */}
+                {/* Left: Logo */}
                 <div style={styles.logoContainer} onClick={() => navigate("/mainPage")}>
                     <img src={logoImage} alt="ProTracker Logo" style={styles.logoImg} />
                 </div>
 
-                {/* Zona Derecha: Acciones */}
+                {/* Right: Actions */}
                 <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
 
-                    {/* Botón: Notificaciones (Campana) */}
+                    {/* Notifications*/}
                     <svg
                         onClick={() => navigate("/notifications")}
                         style={iconStyle} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -48,7 +49,7 @@ export default function Header() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
 
-                    {/* Botón: Guardados (Marcador/Bookmark) */}
+                    {/* Bookmark */}
                     <svg
                         onClick={() => navigate("/savedProducts")}
                         style={iconStyle} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -56,7 +57,7 @@ export default function Header() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                     </svg>
 
-                    {/* Botón: Perfil (Usuario) */}
+                    {/* Profile */}
                     <div
                         onClick={() => navigate("/profile")}
                         style={{ padding: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.4)", display: "flex", cursor: "pointer" }}
@@ -67,7 +68,7 @@ export default function Header() {
                         </svg>
                     </div>
 
-                    {/* Botón: Cerrar Sesión (Abre el modal) */}
+                    {/* Logout */}
                     <div
                         onClick={() => setShowLogoutModal(true)}
                         style={{
@@ -88,7 +89,7 @@ export default function Header() {
                 </div>
             </header>
 
-            {/* Modal de confirmación */}
+            {/* Confirmation modal */}
             {showLogoutModal && (
                 <div style={styles.modalOverlay}>
                     <div style={styles.modalContent}>
@@ -140,18 +141,17 @@ const styles: Record<string, React.CSSProperties> = {
         objectFit: "contain",
         marginTop: "5px",
     },
-    // --- ESTILOS DEL MODAL ---
     modalOverlay: {
         position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)", // Fondo oscuro semitransparente
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        zIndex: 9999, // Asegura que se dibuje por encima de todo
+        zIndex: 9999,
     },
     modalContent: {
         backgroundColor: "#ffffff",

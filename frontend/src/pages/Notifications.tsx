@@ -16,6 +16,8 @@ export default function Notifications() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
   const [modalConfig, setModalConfig] = useState<{
     isOpen: boolean;
     type: "alert" | "confirm";
@@ -37,7 +39,7 @@ export default function Notifications() {
   useEffect(() => {
     async function fetchNotifications() {
       try {
-        const response = await fetch("http://localhost:8080/api/user/notifications", {
+        const response = await fetch(`${API_URL}/api/user/notifications`, {
           method: "GET",
           credentials: "include",
         });
@@ -64,7 +66,7 @@ export default function Notifications() {
   // LOGIC: MARK AS READ (PATCH)
   const markAsRead = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/user/notifications/${id}`, {
+      const response = await fetch(`${API_URL}/api/user/notifications/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -97,7 +99,7 @@ export default function Notifications() {
     }
   };
 
-  // LOGIC: CLICK EN ELIMINAR (Abre el modal)
+  // LOGIC: Click on "eliminar"
   const handleDeleteClick = (id: number) => {
     setModalConfig({
       isOpen: true,
@@ -108,15 +110,15 @@ export default function Notifications() {
     });
   };
 
-  // LOGIC: EJECUTAR EL BORRADO (Tras confirmar)
+  // LOGIC: Execute delete
   const confirmDelete = async () => {
     if (modalConfig.targetId === null) return;
     const id = modalConfig.targetId;
 
-    closeModal(); // Cerramos el modal primero para que la interfaz sea rápida
+    closeModal();
 
     try {
-      const response = await fetch(`http://localhost:8080/api/user/notifications/${id}`, {
+      const response = await fetch(`${API_URL}/api/user/notifications/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -146,7 +148,7 @@ export default function Notifications() {
   };
 
   // ==========================================
-  // CONFIGURACIÓN DINÁMICA POR TIPO DE ALERTA
+  // Dinamic configuration for each alert type
   // ==========================================
   const getTypeStyles = (type: string) => {
     switch (type) {

@@ -35,6 +35,8 @@ export default function ProductView() {
     const [history, setHistory] = useState<PriceHistory[]>([]);
     const [timeRange, setTimeRange] = useState(7);
 
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
     const showMessage = (text: string) => {
         setMessage(text);
         setOpacity(1);
@@ -49,13 +51,13 @@ export default function ProductView() {
                 setIsFollowing(false);
                 setSavedTargetPrice(null);
 
-                const response = await fetch(`http://localhost:8080/api/products/${id}`, { credentials: "include" });
+                const response = await fetch(`${API_URL}/api/products/${id}`, { credentials: "include" });
                 if (!response.ok) throw new Error("Producto no encontrado");
 
                 const productData = await response.json();
                 setProduct(productData);
 
-                const trackingResponse = await fetch(`http://localhost:8080/api/check-tracking/${productData.ProductID}`, {
+                const trackingResponse = await fetch(`${API_URL}/api/check-tracking/${productData.ProductID}`, {
                     credentials: "include"
                 });
 
@@ -83,7 +85,7 @@ export default function ProductView() {
 
     const fetchHistory = async (days: number) => {
         try {
-            const res = await fetch(`http://localhost:8080/api/products/${id}/history?days=${days}`, {
+            const res = await fetch(`${API_URL}/api/products/${id}/history?days=${days}`, {
                 credentials: "include"
             });
 
@@ -106,7 +108,7 @@ export default function ProductView() {
 
         try {
             if (isFollowing) {
-                const response = await fetch(`http://localhost:8080/api/tracking/${product.ProductID}`, {
+                const response = await fetch(`${API_URL}/api/tracking/${product.ProductID}`, {
                     method: "DELETE",
                     credentials: "include"
                 });
@@ -118,7 +120,7 @@ export default function ProductView() {
                     console.error("Error al borrar el seguimiento:", response.status);
                 }
             } else {
-                const response = await fetch("http://localhost:8080/api/tracking", {
+                const response = await fetch(`${API_URL}/api/tracking`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -143,7 +145,7 @@ export default function ProductView() {
         setProgress(30);
 
         try {
-            const response = await fetch("http://localhost:8080/api/track", {
+            const response = await fetch(`${API_URL}/api/track`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
@@ -171,7 +173,7 @@ export default function ProductView() {
         const priceToSet = targetPrice ? parseFloat(targetPrice) : product.LowestPrice;
 
         try {
-            const response = await fetch("http://localhost:8080/api/tracking", {
+            const response = await fetch(`${API_URL}/api/tracking`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
