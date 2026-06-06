@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware intercepta las peticiones, lee la cookie y guarda el UserID en el contexto //nolint:revive
+// AuthMiddleware intercepta las peticiones, lee la cookie y guarda el UserID en el contexto
+//
+//nolint:revive
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Intentamos leer la cookie que guardamos en el login

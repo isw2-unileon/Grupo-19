@@ -52,8 +52,6 @@ type ProductData struct {
 }
 
 // Extract create or update a Product given a targetURL for the product of any of the soported sites
-//
-//nolint:gocognit
 func Extract(targetURL string) (*ProductData, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
