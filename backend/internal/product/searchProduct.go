@@ -22,7 +22,7 @@ func SearchProducts(c *gin.Context) {
 	}
 
 	var products []models.Product
-	if err := database.DB.Where("name ILIKE ?", "%"+query+"%").Find(&products).Error; err != nil {
+	if err := database.DB.Where("LOWER(name) LIKE LOWER(?)", "%"+query+"%").Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al buscar productos"})
 		return
 	}
