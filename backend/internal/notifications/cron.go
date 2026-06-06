@@ -3,6 +3,7 @@ package handlers
 import (
 	"log/slog"
 	"math/rand/v2"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -14,8 +15,11 @@ import (
 
 // init() function runs automatically when the server starts.
 func init() {
-	// Avoid big work charge for the server just when booting up
-	time.Sleep(3 * time.Minute)
+	// Avoids init when working on testing
+	if strings.HasSuffix(os.Args[0], ".test") {
+		return
+	}
+
 	intervalo := 1 * time.Hour
 
 	go func() {
