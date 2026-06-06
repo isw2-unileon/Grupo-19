@@ -70,17 +70,12 @@ linters:
         - name: error-strings
         - name: errorf
         - name: exported
-          disabled: true
         - name: indent-error-flow
         - name: receiver-naming
         - name: time-naming
         - name: unexported-naming
         - name: var-declaration
         - name: var-naming
-      
-      gosec:
-        excludes:
-          - G404
 
   exclusions:
     presets:
