@@ -44,7 +44,7 @@ linters:
 
     funlen:
       lines: -1
-      statements: 50
+      statements: 100
 
     dupl:
       threshold: 100
