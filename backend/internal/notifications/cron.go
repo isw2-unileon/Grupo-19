@@ -14,6 +14,8 @@ import (
 
 // init() function runs automatically when the server starts.
 func init() {
+	// Avoid big work charge for the server just when booting up
+	time.Sleep(3 * time.Minute)
 	intervalo := 1 * time.Hour
 
 	go func() {

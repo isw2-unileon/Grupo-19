@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
@@ -36,7 +38,7 @@ func mockAuthMiddleware(userID uint) gin.HandlerFunc {
 	}
 }
 
-/*func TestGetUserNotifications(t *testing.T) {
+func TestGetUserNotifications(t *testing.T) {
 	setupTestDB()
 	gin.SetMode(gin.TestMode)
 
@@ -88,7 +90,7 @@ func mockAuthMiddleware(userID uint) gin.HandlerFunc {
 			t.Errorf("Expected status 401, got %d", w.Code)
 		}
 	})
-}*/
+}
 
 func TestMarkNotificationAsRead(t *testing.T) {
 	setupTestDB()
