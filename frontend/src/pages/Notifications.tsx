@@ -4,7 +4,7 @@ import Footer from "../components/general/Footer";
 
 interface NotificationItem {
   id: number;
-  type: string; 
+  type: string;
   title: string;
   description: string;
   time: string;
@@ -16,6 +16,22 @@ export default function Notifications() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    type: "alert" | "confirm";
+    title: string;
+    message: string;
+    targetId: number | null;
+  }>({
+    isOpen: false,
+    type: "alert",
+    title: "",
+    message: "",
+    targetId: null,
+  });
+
+  const closeModal = () => setModalConfig({ ...modalConfig, isOpen: false });
+
 
   // LOAD NOTIFICATIONS (GET)
   useEffect(() => {
@@ -23,13 +39,13 @@ export default function Notifications() {
       try {
         const response = await fetch("http://localhost:8080/api/user/notifications", {
           method: "GET",
-          credentials: "include", 
+          credentials: "include",
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          setNotifications(data || []); 
+          setNotifications(data || []);
         } else {
           setErrorMsg(data.error || "Error al cargar las notificaciones");
         }
@@ -50,7 +66,7 @@ export default function Notifications() {
     try {
       const response = await fetch(`http://localhost:8080/api/user/notifications/${id}`, {
         method: "PATCH",
-        credentials: "include", // Envía el token JWT en las cookies
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -61,37 +77,71 @@ export default function Notifications() {
         setNotifications(notifications.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
       } else {
         const data = await response.json();
-        alert(data.error || "No se pudo marcar la notificación como leída");
+        setModalConfig({
+          isOpen: true,
+          type: "alert",
+          title: "Error",
+          message: data.error || "No se pudo marcar la notificación como leída",
+          targetId: null
+        });
       }
     } catch (error) {
       console.error("Error al actualizar la notificación:", error);
-      alert("Error de conexión al marcar como leída");
+      setModalConfig({
+        isOpen: true,
+        type: "alert",
+        title: "Error de conexión",
+        message: "Error de conexión al marcar como leída",
+        targetId: null
+      });
     }
   };
 
+  // LOGIC: CLICK EN ELIMINAR (Abre el modal)
+  const handleDeleteClick = (id: number) => {
+    setModalConfig({
+      isOpen: true,
+      type: "confirm",
+      title: "Eliminar notificación",
+      message: "¿Estás seguro de que deseas eliminar esta notificación?",
+      targetId: id
+    });
+  };
 
-  // DELETE NOTIFICATION (DELETE)
-  const deleteNotification = async (id: number) => {
-    // Pedimos confirmación al usuario por seguridad
-    if (!confirm("¿Estás seguro de que deseas eliminar esta notificación?")) {
-      return;
-    }
+  // LOGIC: EJECUTAR EL BORRADO (Tras confirmar)
+  const confirmDelete = async () => {
+    if (modalConfig.targetId === null) return;
+    const id = modalConfig.targetId;
+
+    closeModal(); // Cerramos el modal primero para que la interfaz sea rápida
 
     try {
       const response = await fetch(`http://localhost:8080/api/user/notifications/${id}`, {
         method: "DELETE",
-        credentials: "include", // Envía el token JWT en las cookies
+        credentials: "include",
       });
 
       if (response.ok) {
         setNotifications(notifications.filter((n) => n.id !== id));
       } else {
         const data = await response.json();
-        alert(data.error || "No se pudo eliminar la notificación");
+        setModalConfig({
+          isOpen: true,
+          type: "alert",
+          title: "Error",
+          message: data.error || "No se pudo eliminar la notificación",
+          targetId: null
+        });
       }
     } catch (error) {
       console.error("Error al eliminar la notificación:", error);
-      alert("Error de conexión al eliminar la notificación");
+      setModalConfig({
+        isOpen: true,
+        type: "alert",
+        title: "Error de conexión",
+        message: "Error de conexión al eliminar la notificación",
+        targetId: null
+      });
     }
   };
 
@@ -101,25 +151,25 @@ export default function Notifications() {
   const getTypeStyles = (type: string) => {
     switch (type) {
       case "target_price":
-        return { 
-          color: "#ffffff", 
-          bg: "#dc2626", 
+        return {
+          color: "#ffffff",
+          bg: "#dc2626",
           label: "🎯 PRECIO OBJETIVO ALCANZADO",
           borderColor: "#dc2626"
         };
       case "price_drop":
-        return { 
-          color: "#166534", 
-          bg: "#dcfce7", 
+        return {
+          color: "#166534",
+          bg: "#dcfce7",
           label: "📉 BAJADA DE PRECIO",
           borderColor: "#22c55e"
         };
       default:
-        return { 
-          color: "#854d0e", 
-          bg: "#fef9c3", 
+        return {
+          color: "#854d0e",
+          bg: "#fef9c3",
           label: "⚙️ SISTEMA",
-          borderColor: "#eab308" 
+          borderColor: "#eab308"
         };
     }
   };
@@ -160,7 +210,7 @@ export default function Notifications() {
               <div style={styles.list}>
                 {notifications.map((notification) => {
                   const badge = getTypeStyles(notification.type);
-                  
+
                   const getCardBg = () => {
                     if (notification.isRead) return "#ffffff";
                     return notification.type === "target_price" ? "#fef2f2" : "#fffbeb";
@@ -193,16 +243,16 @@ export default function Notifications() {
 
                       <div style={styles.cardActions}>
                         {!notification.isRead && (
-                          <button 
-                            onClick={() => markAsRead(notification.id)} 
+                          <button
+                            onClick={() => markAsRead(notification.id)}
                             style={styles.actionButton}
                             title="Marcar como leído"
                           >
                             👁️
                           </button>
                         )}
-                        <button 
-                          onClick={() => deleteNotification(notification.id)} 
+                        <button
+                          onClick={() => handleDeleteClick(notification.id)}
                           style={{ ...styles.actionButton, color: "#ef4444" }}
                           title="Eliminar"
                         >
@@ -214,6 +264,33 @@ export default function Notifications() {
                 })}
               </div>
             )}
+          </div>
+        )}
+        {/* --- Delete notification confirmation --- */}
+        {modalConfig.isOpen && (
+          <div style={styles.modalOverlay}>
+            <div style={styles.modalContent}>
+              <h3 style={{ marginTop: 0, color: "#1f2937" }}>{modalConfig.title}</h3>
+              <p style={{ color: "#4b5563", marginBottom: "24px" }}>
+                {modalConfig.message}
+              </p>
+              <div style={styles.modalActions}>
+                {modalConfig.type === "confirm" ? (
+                  <>
+                    <button onClick={closeModal} style={styles.cancelButton}>
+                      Cancelar
+                    </button>
+                    <button onClick={confirmDelete} style={styles.confirmButton}>
+                      Sí, eliminar
+                    </button>
+                  </>
+                ) : (
+                  <button onClick={closeModal} style={styles.confirmButton}>
+                    Aceptar
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </main>
@@ -327,5 +404,50 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#374151",
     marginTop: "16px",
     marginBottom: "8px",
+  },
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  modalContent: {
+    backgroundColor: "#ffffff",
+    padding: "24px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    maxWidth: "400px",
+    width: "90%",
+    textAlign: "center",
+    fontFamily: "sans-serif",
+  },
+  modalActions: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "16px",
+  },
+  cancelButton: {
+    padding: "10px 20px",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#ffffff",
+    color: "#374151",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
+  },
+  confirmButton: {
+    padding: "10px 28px",
+    border: "none",
+    backgroundColor: "#FACC15",
+    color: "#1f2937",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "bold",
   },
 };
