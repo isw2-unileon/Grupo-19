@@ -128,7 +128,7 @@ func checkSavedProductsPrices() {
 			}
 		}
 
-		// To space out the requests
+		// To space out the requests //nolint:gosec
 		tiempoAleatorio := 3 + rand.IntN(6)
 		time.Sleep(time.Duration(tiempoAleatorio) * time.Second)
 	}

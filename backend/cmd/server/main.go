@@ -67,45 +67,40 @@ func main() {
 
 	// --- ENRUTAMIENTO GENERAL DE LA API ---
 	api := r.Group("/api")
+	api.GET("/hello", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
+	})
+
+	// Rutas Públicas (No requieren login)
+	api.POST("/login", auth.LoginHandler)
+	api.POST("/logout", auth.LogoutHandler)
+	api.POST("/register", auth.RegisterHandler)
+
+	// Rutas Protegidas por JWT
+	protected := api.Group("/")
+	protected.Use(auth.AuthMiddleware())
 	{
-		api.GET("/hello", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
-		})
+		// Endpoints de configuración del perfil de usuario
+		protected.GET("/user/profile", auth.GetProfileHandler)
+		protected.PUT("/user/profile", auth.UpdateProfileHandler)
+		protected.PUT("/user/profile/password", auth.UpdatePasswordHandler)
 
-		// Rutas Públicas (No requieren login)
-		api.POST("/login", auth.LoginHandler)
-		api.POST("/logout", auth.LogoutHandler)
-		api.POST("/register", auth.RegisterHandler)
+		// Rutas del tracker
+		protected.POST("/track", producthandlers.AddProduct)
+		protected.GET("/products/search", producthandlers.SearchProducts)
+		protected.POST("/tracking", producthandlers.UpdateTracking)
 
-		// Rutas Protegidas por JWT
-		protected := api.Group("/")
-		protected.Use(auth.AuthMiddleware())
-		{
-			// Endpoints de configuración del perfil de usuario
-			protected.GET("/user/profile", auth.GetProfileHandler)
-			protected.PUT("/user/profile", auth.UpdateProfileHandler)
-			protected.PUT("/user/profile/password", auth.UpdatePasswordHandler)
+		// Centro de Notificaciones
+		protected.GET("/user/notifications", notificationHandlers.GetUserNotifications)
+		protected.PATCH("/user/notifications/:id", notificationHandlers.MarkNotificationAsRead)
+		protected.DELETE("/user/notifications/:id", notificationHandlers.DeleteNotification)
 
-			// Rutas del tracker
-			protected.POST("/track", producthandlers.AddProduct)
-			protected.GET("/products/search", producthandlers.SearchProducts)
-			protected.POST("/tracking", producthandlers.UpdateTracking)
+		protected.GET("/products/:id", producthandlers.GetProductByID)
+		protected.DELETE("/tracking/:id", producthandlers.UnfollowProduct)
+		protected.GET("/check-tracking/:id", producthandlers.CheckTracking)
+		protected.GET("/user/saved-products", producthandlers.GetSavedProducts)
+		protected.GET("/products/:id/history", producthandlers.GetPriceHistory)
 
-			// Centro de Notificaciones
-			protected.GET("/user/notifications", notificationHandlers.GetUserNotifications)
-			protected.PATCH("/user/notifications/:id", notificationHandlers.MarkNotificationAsRead)
-			protected.DELETE("/user/notifications/:id", notificationHandlers.DeleteNotification)
-
-			// protected.POST("/track", handlers.AddProduct)
-			// protected.GET("/products/search", handlers.SearchProducts)
-			protected.GET("/products/:id", producthandlers.GetProductByID)
-			protected.DELETE("/tracking/:id", producthandlers.UnfollowProduct)
-			// protected.POST("/tracking", handlers.UpdateTracking)
-			protected.GET("/check-tracking/:id", producthandlers.CheckTracking)
-			protected.GET("/user/saved-products", producthandlers.GetSavedProducts)
-			protected.GET("/products/:id/history", producthandlers.GetPriceHistory)
-
-		}
 	}
 
 	srv := &http.Server{

@@ -24,7 +24,7 @@ func EvaluatePriceDropAndNotify(productID uint, currentPrice float64, oldPrice f
 	var trackings []models.Tracking
 	err := database.DB.Where("product_id = ?", productID).Find(&trackings).Error
 	if err != nil {
-		return fmt.Errorf("error buscando trackings: %v", err)
+		return fmt.Errorf("error buscando trackings: %w", err)
 	}
 
 	for _, track := range trackings {
