@@ -48,6 +48,7 @@ type PriceHistory struct {
 	RegisterDate   time.Time
 }
 
+// Notification represent an alert for a product saved by a user
 type Notification struct {
 	NotificationID uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	UserID         uint      `gorm:"not null;index" json:"userId"`

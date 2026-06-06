@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"log/slog"
-	"math/rand"
+	"math/rand/v2"
 	"strconv"
 	"strings"
 	"time"
@@ -129,7 +129,7 @@ func checkSavedProductsPrices() {
 		}
 
 		// To space out the requests
-		tiempoAleatorio := 3 + rand.Intn(6)
+		tiempoAleatorio := 3 + rand.IntN(6)
 		time.Sleep(time.Duration(tiempoAleatorio) * time.Second)
 	}
 

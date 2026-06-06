@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetJWTSecret(t *testing.T) {
-	// Test what happend if there is not enviroment variable
+	// Test what happened if there is not enviroment variable
 	os.Unsetenv("JWT_SECRET")
 	secret := getJWTSecret()
 	if string(secret) != "clave_local_por_defecto_grupo19" {

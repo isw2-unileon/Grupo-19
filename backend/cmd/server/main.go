@@ -19,7 +19,6 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/database"
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 	notificationHandlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/notifications"
-	handlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
 	producthandlers "github.com/isw2-unileon/proyect-scaffolding/backend/internal/product"
 )
 
@@ -99,12 +98,12 @@ func main() {
 
 			// protected.POST("/track", handlers.AddProduct)
 			// protected.GET("/products/search", handlers.SearchProducts)
-			protected.GET("/products/:id", handlers.GetProductByID)
-			protected.DELETE("/tracking/:id", handlers.UnfollowProduct)
+			protected.GET("/products/:id", producthandlers.GetProductByID)
+			protected.DELETE("/tracking/:id", producthandlers.UnfollowProduct)
 			// protected.POST("/tracking", handlers.UpdateTracking)
-			protected.GET("/check-tracking/:id", handlers.CheckTracking)
-			protected.GET("/user/saved-products", handlers.GetSavedProducts)
-			protected.GET("/products/:id/history", handlers.GetPriceHistory)
+			protected.GET("/check-tracking/:id", producthandlers.CheckTracking)
+			protected.GET("/user/saved-products", producthandlers.GetSavedProducts)
+			protected.GET("/products/:id/history", producthandlers.GetPriceHistory)
 
 		}
 	}

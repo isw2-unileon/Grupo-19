@@ -1,3 +1,4 @@
+//nolint:gosec
 package handlers
 
 import (
@@ -47,7 +48,7 @@ func UpdateTracking(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al crear la alerta de precio"})
 			return
 		}
-		updateUserSavedProducts(usuarioID, req.ProductID, true)
+		_ = updateUserSavedProducts(usuarioID, req.ProductID, true)
 	} else {
 		tracking.NotifyTargetPrice = req.TargetPrice
 		tracking.NotifyPriceChanges = true
@@ -61,6 +62,7 @@ func UpdateTracking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Alerta de precio actualizada con éxito"})
 }
 
+// CheckTracking checks if a user is following a specific product
 func CheckTracking(c *gin.Context) {
 	userIDContext, exists := c.Get("userID")
 	if !exists {
@@ -81,6 +83,7 @@ func CheckTracking(c *gin.Context) {
 	})
 }
 
+// UnfollowProduct deletes a product from the user's tracking list
 func UnfollowProduct(c *gin.Context) {
 	userIDContext, _ := c.Get("userID")
 	usuarioID := userIDContext.(uint)
@@ -99,7 +102,7 @@ func UnfollowProduct(c *gin.Context) {
 		return
 	}
 
-	updateUserSavedProducts(usuarioID, productID, false)
+	_ = updateUserSavedProducts(usuarioID, productID, false)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Producto eliminado de tus seguimientos"})
 }

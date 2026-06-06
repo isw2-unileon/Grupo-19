@@ -44,7 +44,7 @@ func AddProduct(c *gin.Context) {
 	}
 
 	// User ID
-	var usuarioID uint = 0
+	var usuarioID uint
 
 	tokenString, errCookie := c.Cookie("auth_token")
 	if errCookie == nil && tokenString != "" {
@@ -117,6 +117,7 @@ func AddProduct(c *gin.Context) {
 	})
 }
 
+// GetPriceHistory returns all the priceHistory entries on the db for a product
 func GetPriceHistory(c *gin.Context) {
 	productID := c.Param("id")
 	daysStr := c.DefaultQuery("days", "7")

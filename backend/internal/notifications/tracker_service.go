@@ -17,7 +17,7 @@ func EvaluatePriceDropAndNotify(productID uint, currentPrice float64, oldPrice f
 	// Take the product data
 	var product models.Product
 	if err := database.DB.First(&product, productID).Error; err != nil {
-		return fmt.Errorf("error al buscar producto: %v", err)
+		return fmt.Errorf("error al buscar producto: %w", err)
 	}
 
 	// Search for all user alerts configured for this product

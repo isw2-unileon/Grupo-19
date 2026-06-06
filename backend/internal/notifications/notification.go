@@ -9,7 +9,7 @@ import (
 	"github.com/isw2-unileon/proyect-scaffolding/backend/internal/models"
 )
 
-// Returns the alerts in the database for the authenticated user
+// GetUserNotifications returns the alerts in the database for the authenticated user
 func GetUserNotifications(c *gin.Context) {
 	userIDContext, exists := c.Get("userID")
 	if !exists {
