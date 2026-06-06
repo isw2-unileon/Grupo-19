@@ -58,22 +58,31 @@ func LoginHandler(c *gin.Context) {
 	}
 
 	// ==========================================
-	// CONFIGURACIÓN DINÁMICA DE COOKIES (DOCKER / PRODUCCIÓN)
+	// Dynamic cookie configuration
 	// ==========================================
 	esProduccion := os.Getenv("GIN_MODE") == "release"
 
-	// CONFIGURACIÓN PARA LOCAL (DOCKER):
-	// Usar "" como dominio permite que el navegador auto-asigne la cookie al origen "localhost"
-	// sin importar que React esté en el 5173 y Go en el 8080.
 	domain := ""
 	secure := false
+	sameSite := http.SameSiteLaxMode
 
 	if esProduccion {
-		domain = "vuestro-dominio-real.com" // El dominio final que os asigne el servidor
+		domain = ""
 		secure = true
+		sameSite = http.SameSiteNoneMode
 	}
 
-	c.SetCookie("auth_token", token, 86400, "/", domain, secure, true)
+	cookie := &http.Cookie{
+		Name:     "auth_token",
+		Value:    token,
+		MaxAge:   86400,
+		Path:     "/",
+		Domain:   domain,
+		Secure:   secure,
+		HttpOnly: true,
+		SameSite: sameSite,
+	}
+	http.SetCookie(c.Writer, cookie)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":  "Login exitoso",
@@ -242,14 +251,25 @@ func LogoutHandler(c *gin.Context) {
 	esProduccion := os.Getenv("GIN_MODE") == "release"
 	domain := ""
 	secure := false
+	sameSite := http.SameSiteLaxMode
 
 	if esProduccion {
-		domain = "vuestro-dominio-real.com"
+		domain = ""
 		secure = true
+		sameSite = http.SameSiteNoneMode
 	}
 
-	// El dominio, path y flags del logout DEBEN coincidir exactamente con los del login
-	c.SetCookie("auth_token", "", -1, "/", domain, secure, true)
+	cookie := &http.Cookie{
+		Name:     "auth_token",
+		Value:    "",
+		MaxAge:   -1,
+		Path:     "/",
+		Domain:   domain,
+		Secure:   secure,
+		HttpOnly: true,
+		SameSite: sameSite,
+	}
+	http.SetCookie(c.Writer, cookie)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Sesión cerrada correctamente"})
 }
