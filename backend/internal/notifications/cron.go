@@ -135,7 +135,7 @@ func checkSavedProductsPrices() {
 		}
 
 		//nolint:gosec
-		tiempoAleatorio := 3 + rand.IntN(6)
+		tiempoAleatorio := 30 + rand.IntN(20)
 		time.Sleep(time.Duration(tiempoAleatorio) * time.Second)
 	}
 
