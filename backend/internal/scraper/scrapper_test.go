@@ -8,9 +8,10 @@ import (
 )
 
 func TestExtract(t *testing.T) {
-	// Definimos la estructura de nuestra "tabla" de pruebas
+	// Define the structure of our test cases table
 	type testCase struct {
 		name           string
+		urlSuffix      string // Allows us to trigger URL-specific logic (like "worten" or "druni")
 		mockHTML       string
 		mockStatusCode int
 		expectedTitle  string
@@ -20,10 +21,11 @@ func TestExtract(t *testing.T) {
 		expectError    bool
 	}
 
-	// Llenamos la tabla con los diferentes escenarios a probar
+	// Fill the table with different scenarios targeting specific shop quirks
 	tests := []testCase{
 		{
-			name: "Caso 1: Etiquetas estándar Open Graph (OG)",
+			name:      "Case 1: Standard Open Graph (OG) tags",
+			urlSuffix: "/standard-product",
 			mockHTML: `
 				<html>
 					<head>
@@ -42,7 +44,8 @@ func TestExtract(t *testing.T) {
 			expectError:    false,
 		},
 		{
-			name: "Caso 2: Selectores alternativos (Estilo Amazon)",
+			name:      "Case 2: Alternative Selectors (Amazon Style)",
+			urlSuffix: "/dp/B08XYZ123",
 			mockHTML: `
 				<html>
 					<body>
@@ -55,57 +58,125 @@ func TestExtract(t *testing.T) {
 			`,
 			mockStatusCode: http.StatusOK,
 			expectedTitle:  "Monitor Gaming 144Hz",
-			expectedPrice:  "199,50", // El scraper actualiza esto limpiando el HTML
+			expectedPrice:  "199,50",
 			expectedImage:  "https://ejemplo.com/monitor.jpg",
 			expectedDesc:   "Monitor con respuesta de 1ms.",
 			expectError:    false,
 		},
 		{
-			name:           "Caso 3: Error 404 del servidor",
+			name:           "Case 3: Server Error 404",
+			urlSuffix:      "/not-found",
 			mockHTML:       `<html><body>No encontrado</body></html>`,
 			mockStatusCode: http.StatusNotFound,
 			expectError:    true,
 		},
+		{
+			name:      "Case 4: Coolmod specific logic (Separated int and decimal)",
+			urlSuffix: "/coolmod-item",
+			mockHTML: `
+				<html>
+					<body>
+						<h1>Tarjeta Gráfica RTX</h1>
+						<div class="product_price int_price">399</div>
+						<div class="dec_price">95</div>
+					</body>
+				</html>
+			`,
+			mockStatusCode: http.StatusOK,
+			expectedTitle:  "Tarjeta Gráfica RTX",
+			expectedPrice:  "399.95",
+			expectedImage:  "",
+			expectedDesc:   "",
+			expectError:    false,
+		},
+		{
+			name:      "Case 5: Game specific logic (Quotes in decimals)",
+			urlSuffix: "/game-item",
+			mockHTML: `
+				<html>
+					<body>
+						<h1>Mando Inalámbrico</h1>
+						<div class="buy--price">
+							<span class="int">59</span>
+							<span class="decimal">'99</span>
+						</div>
+					</body>
+				</html>
+			`,
+			mockStatusCode: http.StatusOK,
+			expectedTitle:  "Mando Inalámbrico",
+			expectedPrice:  "59.99", // Scraper must remove the ' character
+			expectedImage:  "",
+			expectedDesc:   "",
+			expectError:    false,
+		},
+		{
+			name:      "Case 6: Worten specific logic (URL detection & absolute image formatting)",
+			urlSuffix: "/worten/frigorifico", // Triggers strings.Contains(targetURL, "worten")
+			mockHTML: `
+				<html>
+					<head>
+						<meta name="og:title" content="Frigorífico Combi | Worten.es">
+						<meta name="og:image" content="/images/frigo.jpg">
+					</head>
+					<body>
+						<div class="price__numbers">
+							<span class="value">499.</span>
+							<span class="decimal">00</span>
+						</div>
+					</body>
+				</html>
+			`,
+			mockStatusCode: http.StatusOK,
+			expectedTitle:  "Frigorífico Combi", // Must clean " | Worten.es"
+			expectedPrice:  "499.00",
+			expectedImage:  "https://www.worten.es/images/frigo.jpg", // Must prepend domain
+			expectedDesc:   "",
+			expectError:    false,
+		},
 	}
 
-	// Ejecutamos cada caso de la tabla
+	// Execute all table cases
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// 1. Levantamos un servidor falso que devuelva nuestro HTML de prueba
+			// 1. Start a mock server to return our test HTML
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tc.mockStatusCode)
 				fmt.Fprint(w, tc.mockHTML)
 			}))
-			// Aseguramos que el servidor falso se apague al terminar este test
+			// Ensure the mock server is closed when the test finishes
 			defer server.Close()
 
-			// 2. Ejecutamos nuestra función original pasándole la URL del servidor falso
-			product, err := Extract(server.URL)
+			// Build the target URL combining the mock server IP with our specific suffix
+			targetURL := server.URL + tc.urlSuffix
 
-			// 3. Comprobamos los resultados
+			// 2. Execute the extract function against our mock server
+			product, err := Extract(targetURL)
+
+			// 3. Evaluate results
 			if tc.expectError {
 				if err == nil {
-					t.Fatalf("Se esperaba un error (código %d) pero no ocurrió", tc.mockStatusCode)
+					t.Fatalf("Expected an error (status %d) but none occurred", tc.mockStatusCode)
 				}
-				return // Si esperábamos error y dio error, el test pasa correctamente
+				return // Test passes if we expected an error and got one
 			}
 
 			if err != nil {
-				t.Fatalf("No se esperaba error, pero ocurrió: %v", err)
+				t.Fatalf("Unexpected error occurred: %v", err)
 			}
 
-			// Validamos todos los campos del producto
+			// Validate all product fields
 			if product.Title != tc.expectedTitle {
-				t.Errorf("Título incorrecto. Esperado: %q, Obtenido: %q", tc.expectedTitle, product.Title)
+				t.Errorf("Title mismatch. Expected: %q, Got: %q", tc.expectedTitle, product.Title)
 			}
 			if product.Price != tc.expectedPrice {
-				t.Errorf("Precio incorrecto. Esperado: %q, Obtenido: %q", tc.expectedPrice, product.Price)
+				t.Errorf("Price mismatch. Expected: %q, Got: %q", tc.expectedPrice, product.Price)
 			}
 			if product.ImageURL != tc.expectedImage {
-				t.Errorf("Imagen incorrecta. Esperado: %q, Obtenido: %q", tc.expectedImage, product.ImageURL)
+				t.Errorf("Image URL mismatch. Expected: %q, Got: %q", tc.expectedImage, product.ImageURL)
 			}
 			if product.Description != tc.expectedDesc {
-				t.Errorf("Descripción incorrecta. Esperado: %q, Obtenido: %q", tc.expectedDesc, product.Description)
+				t.Errorf("Description mismatch. Expected: %q, Got: %q", tc.expectedDesc, product.Description)
 			}
 		})
 	}
