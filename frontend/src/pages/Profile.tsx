@@ -13,7 +13,7 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // --- Visual Feedback (Mensajes y Opacidades) ---
+  // --- Visual Feedback ---
   const [profileMsg, setProfileMsg] = useState({ text: "", isError: false });
   const [passwordMsg, setPasswordMsg] = useState({ text: "", isError: false });
 
