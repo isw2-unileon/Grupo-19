@@ -55,7 +55,7 @@ func main() {
 	// Obtain the frontend URL on production
 	frontendURL := os.Getenv("FRONTEND_URL")
 
-	allowedOrigins := []string{"http://localhost:5173", "http://localhost:3000"}
+	allowedOrigins := []string{"https://grupo-19-frontend.onrender.com", "http://localhost:5173"}
 	if frontendURL != "" {
 		allowedOrigins = append(allowedOrigins, frontendURL)
 	}
@@ -108,6 +108,11 @@ func main() {
 	protected.GET("/check-tracking/:id", producthandlers.CheckTracking)
 	protected.GET("/user/saved-products", producthandlers.GetSavedProducts)
 	protected.GET("/products/:id/history", producthandlers.GetPriceHistory)
+
+	puertoRender := os.Getenv("PORT")
+	if puertoRender != "" {
+		cfg.Port = puertoRender
+	}
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
