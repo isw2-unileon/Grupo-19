@@ -98,6 +98,10 @@ export default function Login({ onLoginSuccess }: LoginProps) {
             width: "100%"
           }}
         >
+          <h1 style={{ fontSize: "36px", fontWeight: "bold", color: "#1f2937", margin: "0 0 30px 0" }}>
+            ProTracker
+          </h1>
+
           <LoginForm
             email={email}
             password={password}
