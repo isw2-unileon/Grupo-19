@@ -55,7 +55,7 @@ func main() {
 	// Obtain the frontend URL on production
 	frontendURL := os.Getenv("FRONTEND_URL")
 
-	allowedOrigins := []string{"http://localhost:5173", "http://localhost:3000"}
+	allowedOrigins := []string{"https://grupo-19-frontend.onrender.com", "http://localhost:5173"}
 	if frontendURL != "" {
 		allowedOrigins = append(allowedOrigins, frontendURL)
 	}
