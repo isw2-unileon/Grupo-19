@@ -34,7 +34,6 @@ The code may fail due to page or connection blocking (Thanks Tebas)
 */
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"regexp"
@@ -55,12 +54,6 @@ type ProductData struct {
 
 // Extract create or update a Product given a targetURL for the product of any of the soported sites
 func Extract(targetURL string) (*ProductData, error) {
-	defer func() {
-		if r := recover(); r != nil {
-			slog.Error("¡PANIC ATRAPADO EN EL SCRAPER!", "url", targetURL, "panic", r)
-		}
-	}()
-	slog.Info("Iniciando extracción", "url", targetURL)
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
@@ -163,26 +156,10 @@ func Extract(targetURL string) (*ProductData, error) {
 	if price, exists := doc.Find("meta[property='product:price:amount']").Attr("content"); exists && price != "" {
 		product.Price = price
 	} else {
-		rawPrice := ""
-		// Specific logic for amazon because of render malfunction
-		if strings.Contains(targetURL, "amazon") {
-			rawPrice = doc.Find("#corePriceDisplay_desktop_feature_div .a-price .a-offscreen").First().Text()
-
-			if rawPrice == "" {
-				rawPrice = doc.Find("#corePrice_feature_div .a-price .a-offscreen").First().Text()
-			}
-			if rawPrice == "" {
-				rawPrice = doc.Find("#corePrice_desktop .a-price .a-offscreen").First().Text()
-			}
-			if rawPrice == "" {
-				rawPrice = doc.Find("#apex_desktop .a-price .a-offscreen").First().Text()
-			}
-		}
 		// Tags from different shops
-		if rawPrice == "" { // PCComponentes
-			rawPrice = doc.Find("#pdp-price-current-integer").Parent().Text()
-		}
-		if rawPrice == "" {
+		rawPrice := doc.Find("#pdp-price-current-integer").Parent().Text() // PCComponentes
+
+		if rawPrice == "" { // Amazon
 			rawPrice = doc.Find(".a-price .a-offscreen").First().Text()
 		}
 		if rawPrice == "" {
