@@ -28,14 +28,14 @@ func TestGetEnv(t *testing.T) {
 
 func TestLoad(t *testing.T) {
 	variables := []string{"PORT", "GIN_MODE", "CORS_ALLOW_ORIGIN", "DATABASE_URL", "JWT_SECRET"}
-	respaldos := make(map[string]string)
+	backup := make(map[string]string)
 	for _, v := range variables {
-		respaldos[v] = os.Getenv(v)
+		backup[v] = os.Getenv(v)
 		os.Unsetenv(v)
 	}
 
 	defer func() {
-		for key, val := range respaldos {
+		for key, val := range backup {
 			if val != "" {
 				os.Setenv(key, val)
 			}

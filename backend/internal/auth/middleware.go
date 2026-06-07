@@ -6,12 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware intercepta las peticiones, lee la cookie y guarda el UserID en el contexto
+// AuthMiddleware intercepts the requests, reads the cookie and saves the UserID in the context
 //
 //nolint:revive
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Intentamos leer la cookie que guardamos en el login
+		// We try to read the cookie that we saved in the login
 		tokenString, err := c.Cookie("auth_token")
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Inicie sesión para acceder a este recurso"})
@@ -19,7 +19,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Validamos el token
+		// Validate the token
 		claims, err := ValidateToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Sesión inválida o expirada"})
@@ -27,11 +27,11 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Inyectamos el UserID en el contexto de la petición
+		// Injection of the UserID in the context of the request
 		c.Set("userID", claims.UserID)
 		c.Set("userType", claims.UserType)
 
-		// Permitimos que la petición continúe hacia el controlador final
+		// Allow the request to continue to the final controller
 		c.Next()
 	}
 }

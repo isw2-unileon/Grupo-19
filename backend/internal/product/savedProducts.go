@@ -16,11 +16,11 @@ func GetSavedProducts(c *gin.Context) {
 		return
 	}
 
-	usuarioID := userIDContext.(uint)
+	userID := userIDContext.(uint)
 	var user models.User
 
 	// Find User
-	if err := database.DB.First(&user, usuarioID).Error; err != nil {
+	if err := database.DB.First(&user, userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Usuario no encontrado"})
 		return
 	}

@@ -133,21 +133,21 @@ func RegisterHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Usuario registrado correctamente"})
 }
 
-// UpdateProfileRequest estructura para el formulario de nombre y email
+// UpdateProfileRequest structure for the name and email form
 type UpdateProfileRequest struct {
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 }
 
-// UpdatePasswordRequest estructura para el formulario de cambio de contraseña
+// Update Password Request structure for the password change form
 type UpdatePasswordRequest struct {
 	CurrentPassword string `json:"currentPassword" binding:"required"`
 	NewPassword     string `json:"newPassword" binding:"required,min=6"`
 }
 
-// GetProfileHandler devuelve la información del usuario actual (sin la contraseña)
+// GetProfileHandler returns the current user's information (without the password)
 func GetProfileHandler(c *gin.Context) {
-	// 1. Recuperamos el userID que el AuthMiddleware() ha guardado en el contexto
+	// We retrieve the userID that AuthMiddleware() has saved in the context
 	userID, exists := c.Get("userID")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
@@ -167,7 +167,7 @@ func GetProfileHandler(c *gin.Context) {
 	})
 }
 
-// UpdateProfileHandler modifica el Username y el Email validando duplicados
+// UpdateProfileHandler modifies the Username and Email, validating duplicates.
 func UpdateProfileHandler(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -187,7 +187,7 @@ func UpdateProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// Validación: Verificar que el nuevo email/username no lo tenga OTRA persona distinta (id != actual)
+	// Validation: Verify that the new email/username is not already in use by another person
 	var existingUser models.User
 	result := database.DB.Where("(email = ? OR username = ?) AND user_id != ?", req.Email, req.Username, userID.(uint)).First(&existingUser)
 	if result.RowsAffected > 0 {
@@ -206,7 +206,7 @@ func UpdateProfileHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Perfil actualizado correctamente"})
 }
 
-// UpdatePasswordHandler comprueba la contraseña antigua y guarda la nueva hasheada
+// UpdatePasswordHandler checks the old password and saves the new hashed password
 func UpdatePasswordHandler(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -246,14 +246,14 @@ func UpdatePasswordHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Contraseña modificada con éxito"})
 }
 
-// LogoutHandler destruye la cookie de autenticación del navegador
+// LogoutHandler destroys the browser's authentication cookie
 func LogoutHandler(c *gin.Context) {
-	esProduccion := os.Getenv("GIN_MODE") == "release"
+	isProduction := os.Getenv("GIN_MODE") == "release"
 	domain := ""
 	secure := false
 	sameSite := http.SameSiteLaxMode
 
-	if esProduccion {
+	if isProduction {
 		domain = ""
 		secure = true
 		sameSite = http.SameSiteNoneMode

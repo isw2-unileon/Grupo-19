@@ -50,42 +50,42 @@ func SearchProducts(c *gin.Context) {
 				return
 			}
 
-			precioLimpio := strings.Replace(scrapedData.Price, ",", ".", 1)
-			precioFloat, err := strconv.ParseFloat(precioLimpio, 64)
-			if err != nil || precioFloat == 0 {
+			cleanPrice := strings.Replace(scrapedData.Price, ",", ".", 1)
+			floatPrice, err := strconv.ParseFloat(cleanPrice, 64)
+			if err != nil || floatPrice == 0 {
 				return
 			}
 
-			haCambiado := false
+			hasChanged := false
 
 			// Check if there is a different price
-			if precioFloat != products[index].LastPrice {
-				products[index].LastPrice = precioFloat
-				haCambiado = true
+			if floatPrice != products[index].LastPrice {
+				products[index].LastPrice = floatPrice
+				hasChanged = true
 			}
 
 			// Check minimum price
-			if products[index].LowestPrice == 0 || precioFloat < products[index].LowestPrice {
-				products[index].LowestPrice = precioFloat
-				haCambiado = true
+			if products[index].LowestPrice == 0 || floatPrice < products[index].LowestPrice {
+				products[index].LowestPrice = floatPrice
+				hasChanged = true
 			}
 
 			// Price refresh if needed
-			if haCambiado {
+			if hasChanged {
 				products[index].UpdatedAt = time.Now()
 				database.DB.Save(&products[index])
 			}
 
-			var ultimoHistorial models.PriceHistory
-			errHistorial := database.DB.Where("product_id = ?", products[index].ProductID).Order("register_date desc").First(&ultimoHistorial).Error
+			var lastHistory models.PriceHistory
+			errHistory := database.DB.Where("product_id = ?", products[index].ProductID).Order("register_date desc").First(&lastHistory).Error
 
-			if errHistorial != nil || time.Since(ultimoHistorial.RegisterDate) >= 12*time.Hour {
-				nuevoPrecio := models.PriceHistory{
+			if errHistory != nil || time.Since(lastHistory.RegisterDate) >= 12*time.Hour {
+				newPrice := models.PriceHistory{
 					ProductID:    products[index].ProductID,
-					Price:        precioFloat,
+					Price:        floatPrice,
 					RegisterDate: time.Now(),
 				}
-				database.DB.Create(&nuevoPrecio)
+				database.DB.Create(&newPrice)
 			}
 		}(i)
 	}
