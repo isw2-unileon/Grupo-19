@@ -124,13 +124,13 @@ func Extract(targetURL string) (*ProductData, error) {
 				product.ImageURL = img
 			}
 		}
-	} else if rawHtml, err := doc.Html(); err == nil { // Amazon
+	} else if rawHTML, err := doc.Html(); err == nil { // Amazon
 		reHiRes := regexp.MustCompile(`"hiRes"\s*:\s*"([^"]+)"`)
-		if match := reHiRes.FindStringSubmatch(rawHtml); len(match) > 1 {
+		if match := reHiRes.FindStringSubmatch(rawHTML); len(match) > 1 {
 			product.ImageURL = match[1]
 		} else {
 			reOldHires := regexp.MustCompile(`data-old-hires="([^"]+)"`)
-			if match2 := reOldHires.FindStringSubmatch(rawHtml); len(match2) > 1 {
+			if match2 := reOldHires.FindStringSubmatch(rawHTML); len(match2) > 1 {
 				product.ImageURL = match2[1]
 			} else if img, exists := doc.Find("#landingImage").Attr("src"); exists && img != "" {
 				product.ImageURL = strings.TrimSpace(img)

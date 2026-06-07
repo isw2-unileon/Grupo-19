@@ -139,7 +139,7 @@ type UpdateProfileRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 }
 
-// Update Password Request structure for the password change form
+// UpdatePasswordRequest structure for the password change form
 type UpdatePasswordRequest struct {
 	CurrentPassword string `json:"currentPassword" binding:"required"`
 	NewPassword     string `json:"newPassword" binding:"required,min=6"`

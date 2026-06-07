@@ -189,7 +189,7 @@ export default function ProductView() {
                 setIsFollowing(true);
                 showMessage(`Alerta establecida en ${priceToSet}€`);
             }
-        } catch (error) {
+        } catch {
             showMessage("Error al guardar la alerta");
         }
     };

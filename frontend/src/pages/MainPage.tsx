@@ -6,8 +6,22 @@ import ResultsGrid from "../components/mainpage/ResultsGrid";
 import Header from "../components/general/Header";
 import Footer from "../components/general/Footer";
 
+// Product interface to avoid using any on productList const
+export interface Product {
+  ProductID: number;
+  Name: string;
+  image_url: string;
+  description: string;
+  SourceURL: string;
+  LastPrice: number;
+  LowestPrice: number;
+  CreatedBy: number;
+  CreateAt: string;
+  UpdatedAt: string;
+}
+
 export default function MainPage() {
-  const [productsList, setProductsList] = useState([]);
+  const [productsList, setProductsList] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -27,7 +41,7 @@ export default function MainPage() {
         const data = await response.json();
 
         if (response.ok) {
-          setProductsList([data.data] as any);
+          setProductsList([data.data]);
         } else {
           console.error("Error al rastrear producto:", data.error);
         }
