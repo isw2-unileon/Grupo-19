@@ -160,23 +160,16 @@ func Extract(targetURL string) (*ProductData, error) {
 		rawPrice := doc.Find("#pdp-price-current-integer").Parent().Text() // PCComponentes
 
 		if strings.Contains(targetURL, "amazon") { // Amazon
-			if val, exists := doc.Find("input#twister-plus-price-data-price").Attr("value"); exists && val != "" {
+			if val, exists := doc.Find("#desktop_buybox input[name='items[0.base][customerVisiblePrice][amount]']").Attr("value"); exists && val != "" {
 				rawPrice = val
 			}
+
 			if rawPrice == "" {
-				if val, exists := doc.Find("input[name='items[0.base][customerVisiblePrice][amount]']").Attr("value"); exists && val != "" {
-					rawPrice = val
-				}
+				rawPrice = doc.Find("#desktop_buybox .a-price .a-offscreen").First().Text()
 			}
+
 			if rawPrice == "" {
-				rawPrice = doc.Find("#corePrice_feature_div .a-price .a-offscreen").First().Text()
-			}
-			if rawPrice == "" || strings.TrimSpace(rawPrice) == "" {
-				euros := doc.Find("#corePriceDisplay_desktop_feature_div .a-price-whole").First().Text()
-				cents := doc.Find("#corePriceDisplay_desktop_feature_div .a-price-fraction").First().Text()
-				if euros != "" && cents != "" {
-					rawPrice = euros + cents
-				}
+				rawPrice = doc.Find("#buybox .a-price .a-offscreen").First().Text()
 			}
 		}
 		if rawPrice == "" {
