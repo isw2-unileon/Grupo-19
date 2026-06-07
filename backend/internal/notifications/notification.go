@@ -17,10 +17,10 @@ func GetUserNotifications(c *gin.Context) {
 		return
 	}
 
-	usuarioID := userIDContext.(uint)
+	userID := userIDContext.(uint)
 
 	var list []models.Notification
-	err := database.DB.Where("user_id = ?", usuarioID).
+	err := database.DB.Where("user_id = ?", userID).
 		Order("is_read ASC").
 		Order("created_at DESC").
 		Find(&list).Error

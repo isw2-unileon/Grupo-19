@@ -69,12 +69,12 @@ func TestAuthMiddleware(t *testing.T) {
 			c.String(http.StatusOK, "¡Entraste!")
 		})
 
-		tokenReal, _ := GenerateToken(77, "premium")
+		realToken, _ := GenerateToken(77, "premium")
 
 		req, _ := http.NewRequest("GET", "/ruta-protegida", nil)
 		req.AddCookie(&http.Cookie{
 			Name:  "auth_token",
-			Value: tokenReal,
+			Value: realToken,
 		})
 
 		w := httptest.NewRecorder()

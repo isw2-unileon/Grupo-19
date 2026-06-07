@@ -14,7 +14,7 @@ type Config struct {
 	CORSAllowOrigin string
 
 	DatabaseURL string
-	JWTSecret   string // 2. Añadimos el campo para la clave secreta del token
+	JWTSecret   string // Added the field for the token's secret key
 }
 
 // Load reads configuration from environment variables with sensible defaults.
@@ -28,7 +28,7 @@ func Load() *Config {
 
 		DatabaseURL: getEnv("DATABASE_URL", "postgres://admin:secretpassword@db:5432/rastreador_precios?sslmode=disable"),
 
-		// Añadimos la lectura de la clave secreta con un valor por defecto seguro para local
+		// Add secret key reading with a safe default value for local
 		JWTSecret: getEnv("JWT_SECRET", "clave_temporal_local_grupo19_2026"),
 	}
 }

@@ -20,33 +20,33 @@ func init() {
 		return
 	}
 
-	intervalo := 1 * time.Hour
+	interval := 1 * time.Hour
 
 	go func() {
-		slog.Info("[CRON INTERNO] Esperando a que la base de datos esté lista...")
+		slog.Info("[INTERNAL CRON] Waiting for the database to be ready...")
 
 		// ACTIVE CHECK LOOP (Maximum 30 attempts, one per second)
-		dbLista := false
+		dbList := false
 		for i := 0; i < 30; i++ {
 			if database.DB != nil {
-				var dePrueba int
-				err := database.DB.Raw("SELECT 1").Scan(&dePrueba).Error
+				var test int
+				err := database.DB.Raw("SELECT 1").Scan(&test).Error
 				if err == nil {
-					dbLista = true
+					dbList = true
 					break
 				}
 			}
 			time.Sleep(1 * time.Second)
 		}
 
-		if !dbLista {
-			slog.Error("[CRON INTERNO] CRÍTICO: No se pudo conectar a la BBDD tras 30 segundos. Cron abortado.")
+		if !dbList {
+			slog.Error("[INTERNAL CHRON] CRITICAL: Could not connect to the DB after 30 seconds. Cron aborted.")
 			return
 		}
 
-		slog.Info("[CRON INTERNO] ¡Base de datos detectada! El despertador automático se inicia ahora mismo.")
+		slog.Info("[INTERNAL CHRON] Database detected! The automatic alarm clock starts right now.")
 
-		ticker := time.NewTicker(intervalo)
+		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
 		for {
@@ -58,86 +58,86 @@ func init() {
 
 // checkSavedProductsPrices It searches and analyzes the products that users actively follow.
 func checkSavedProductsPrices() {
-	slog.Info("[CRON] Pasada horaria: Comprobando precios de productos activos en seguimiento...")
+	slog.Info("[CRON] Periodic scan: Checking prices of active followed products...")
 
 	if database.DB == nil {
-		slog.Error("[CRON] La conexión a la base de datos aún no está lista")
+		slog.Error("[CRON] Database connection not yet ready")
 		return
 	}
 
-	var productos []models.Product
+	var products []models.Product
 
 	// Select unique products that have at least one associated record in the 'trackings' table
 	err := database.DB.Distinct("products.*").
 		Joins("JOIN trackings ON trackings.product_id = products.product_id").
-		Find(&productos).Error
+		Find(&products).Error
 	if err != nil {
-		slog.Error("[CRON] Error al recuperar productos activos de la BBDD", "error", err)
+		slog.Error("[CRON] Error when recovering active products from the DB", "error", err)
 		return
 	}
 
-	slog.Info("[CRON]", "total_productos_a_scrapear", len(productos))
+	slog.Info("[CRON]", "total_productos_a_scrapear", len(products))
 
-	for i := range productos {
-		slog.Info("[CRON] Analizando artículo activo", "id", productos[i].ProductID, "name", productos[i].Name)
+	for i := range products {
+		slog.Info("[CRON] Analyzing active item", "id", products[i].ProductID, "name", products[i].Name)
 
 		// We run the scraper by passing it the URL
-		scrapedData, err := scraper.Extract(productos[i].SourceURL)
+		scrapedData, err := scraper.Extract(products[i].SourceURL)
 		if err != nil {
-			slog.Error("[CRON] El scraper ha fallado para esta URL", "url", productos[i].SourceURL, "error", err)
+			slog.Error("[CRON] The scraper has failed for this URL", "url", products[i].SourceURL, "error", err)
 			// Dejamos también un pequeño respiro de cortesía tras un error por seguridad
 			time.Sleep(2 * time.Second)
 			continue
 		}
 
 		// Clean up the formatting of the price text.
-		precioLimpio := strings.Replace(scrapedData.Price, ",", ".", 1)
-		nuevoPrecio, err := strconv.ParseFloat(precioLimpio, 64)
-		if err != nil || nuevoPrecio == 0 {
-			slog.Error("[CRON] El precio extraído no es válido", "raw", scrapedData.Price)
+		cleanPrice := strings.Replace(scrapedData.Price, ",", ".", 1)
+		newPrice, err := strconv.ParseFloat(cleanPrice, 64)
+		if err != nil || newPrice == 0 {
+			slog.Error("[CRON] Extracted price is not valid", "raw", scrapedData.Price)
 			time.Sleep(2 * time.Second)
 			continue
 		}
 
-		precioViejo := productos[i].LastPrice
-		haCambiado := false
+		oldPrice := products[i].LastPrice
+		hasChanged := false
 
 		// If the price on the website is different from the saved price, we update it.
-		if nuevoPrecio != precioViejo {
-			productos[i].LastPrice = nuevoPrecio
-			haCambiado = true
+		if newPrice != oldPrice {
+			products[i].LastPrice = newPrice
+			hasChanged = true
 		}
 
 		// We check if it is the all-time low
-		if productos[i].LowestPrice == 0 || nuevoPrecio < productos[i].LowestPrice {
-			productos[i].LowestPrice = nuevoPrecio
-			haCambiado = true
+		if products[i].LowestPrice == 0 || newPrice < products[i].LowestPrice {
+			products[i].LowestPrice = newPrice
+			hasChanged = true
 		}
 
 		// If there have been any structural changes, we save them in the database.
-		if haCambiado {
-			productos[i].UpdatedAt = time.Now()
-			if err := database.DB.Save(&productos[i]).Error; err != nil {
-				slog.Error("[CRON] Error al guardar el nuevo precio en la BBDD", "id", productos[i].ProductID, "error", err)
+		if hasChanged {
+			products[i].UpdatedAt = time.Now()
+			if err := database.DB.Save(&products[i]).Error; err != nil {
+				slog.Error("[CRON] Error al guardar el nuevo precio en la BBDD", "id", products[i].ProductID, "error", err)
 				time.Sleep(2 * time.Second)
 				continue
 			}
 
 			// If the website price is lower than the price of our database, we trigger alerts
-			if nuevoPrecio < precioViejo {
-				slog.Info("¡Precio reducido detectado en segundo plano!", "product", productos[i].Name, "old", precioViejo, "new", nuevoPrecio)
+			if newPrice < oldPrice {
+				slog.Info("Reduced price detected in the background!", "product", products[i].Name, "old", oldPrice, "new", newPrice)
 
-				err := EvaluatePriceDropAndNotify(productos[i].ProductID, nuevoPrecio, precioViejo)
+				err := EvaluatePriceDropAndNotify(products[i].ProductID, newPrice, oldPrice)
 				if err != nil {
-					slog.Error("[CRON] Error al procesar alertas de usuarios", "error", err)
+					slog.Error("[CRON] Error processing user alerts", "error", err)
 				}
 			}
 		}
 
 		//nolint:gosec
-		tiempoAleatorio := 30 + rand.IntN(20)
-		time.Sleep(time.Duration(tiempoAleatorio) * time.Second)
+		randomTime := 30 + rand.IntN(20)
+		time.Sleep(time.Duration(randomTime) * time.Second)
 	}
 
-	slog.Info("[CRON] Pasada horaria finalizada con éxito.")
+	slog.Info("[CRON] Periodic scan completed successfully.")
 }

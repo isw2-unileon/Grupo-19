@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-// Estructura de datos para que sea facilísimo añadir o quitar enlaces
+// Data structure to make it super easy to add or remove links
 const footerLinks = [
     {
         title: "ProTracker",
@@ -37,7 +37,7 @@ export default function Footer() {
                         <ul style={styles.list}>
                             {column.links.map((link, linkIndex) => (
                                 <li key={linkIndex} style={styles.listItem}>
-                                    {/* Si fuera un enlace externo se usaría <a>, aquí usamos el sistema de navegación interno */}
+                                    {/* If it were an external link, <a> would be used; here we use the internal navigation system */}
                                     <span
                                         onClick={() => navigate(link.path)}
                                         style={styles.link}
@@ -59,12 +59,12 @@ export default function Footer() {
 
 const styles: Record<string, React.CSSProperties> = {
     footer: {
-        backgroundColor: "#1f2937", // Gris muy oscuro
-        color: "#f3f4f6", // Texto gris clarito
-        padding: "30px 80px 10px 80px", // Espacio interior
+        backgroundColor: "#1f2937",
+        color: "#f3f4f6", 
+        padding: "30px 80px 10px 80px", // Interior space
         width: "100%",
         boxSizing: "border-box",
-        marginTop: "auto", // Ayuda a que se pegue abajo si la página es corta
+        marginTop: "auto", // Helps it stick at the bottom if the page is short
     },
     grid: {
         display: "grid",
@@ -80,7 +80,7 @@ const styles: Record<string, React.CSSProperties> = {
         flexDirection: "column",
     },
     title: {
-        color: "#FACC15", // Toque amarillo para los títulos
+        color: "#FACC15", 
         fontSize: "16px",
         fontWeight: "bold",
         marginBottom: "12px",

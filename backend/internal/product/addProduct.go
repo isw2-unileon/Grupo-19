@@ -37,20 +37,20 @@ func AddProduct(c *gin.Context) {
 		return
 	}
 
-	precioLimpio := strings.Replace(product.Price, ",", ".", 1)
-	precioFloat, err := strconv.ParseFloat(precioLimpio, 64)
+	cleanPrice := strings.Replace(product.Price, ",", ".", 1)
+	floatPrice, err := strconv.ParseFloat(cleanPrice, 64)
 	if err != nil {
-		precioFloat = 0.0
+		floatPrice = 0.0
 	}
 
 	// User ID
-	var usuarioID uint
+	var userID uint
 
 	tokenString, errCookie := c.Cookie("auth_token")
 	if errCookie == nil && tokenString != "" {
 		claims, err := auth.ValidateToken(tokenString)
 		if err == nil && claims != nil {
-			usuarioID = claims.UserID
+			userID = claims.UserID
 		}
 	}
 
@@ -61,9 +61,9 @@ func AddProduct(c *gin.Context) {
 		producto = models.Product{
 			Name:        product.Title,
 			SourceURL:   product.URL,
-			LastPrice:   precioFloat,
-			LowestPrice: precioFloat,
-			CreatedBy:   usuarioID,
+			LastPrice:   floatPrice,
+			LowestPrice: floatPrice,
+			CreatedBy:   userID,
 			CreateAt:    time.Now(),
 			UpdatedAt:   time.Now(),
 			ImageURL:    product.ImageURL,
@@ -75,7 +75,7 @@ func AddProduct(c *gin.Context) {
 			return
 		}
 	} else {
-		producto.LastPrice = precioFloat
+		producto.LastPrice = floatPrice
 		producto.UpdatedAt = time.Now()
 
 		if product.Title != "" {
@@ -88,20 +88,20 @@ func AddProduct(c *gin.Context) {
 			producto.Description = product.Description
 		}
 
-		if precioFloat > 0 && (producto.LowestPrice == 0 || precioFloat < producto.LowestPrice) {
-			producto.LowestPrice = precioFloat
+		if floatPrice > 0 && (producto.LowestPrice == 0 || floatPrice < producto.LowestPrice) {
+			producto.LowestPrice = floatPrice
 		}
 
 		database.DB.Save(&producto)
 	}
 
-	var ultimoHistorial models.PriceHistory
-	errHistorial := database.DB.Where("product_id = ?", producto.ProductID).Order("register_date desc").First(&ultimoHistorial).Error
+	var lastHistory models.PriceHistory
+	errHistorial := database.DB.Where("product_id = ?", producto.ProductID).Order("register_date desc").First(&lastHistory).Error
 
-	if errHistorial != nil || time.Since(ultimoHistorial.RegisterDate) >= 12*time.Hour {
+	if errHistorial != nil || time.Since(lastHistory.RegisterDate) >= 12*time.Hour {
 		nuevoPrecio := models.PriceHistory{
 			ProductID:    producto.ProductID,
-			Price:        precioFloat,
+			Price:        floatPrice,
 			RegisterDate: time.Now(),
 		}
 

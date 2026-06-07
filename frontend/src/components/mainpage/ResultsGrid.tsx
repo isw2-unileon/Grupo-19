@@ -62,9 +62,9 @@ export default function ResultsGrid({ products = [], isLoading = false, emptyTit
   };
 
   const guardarTracking = async (productID: number) => {
-    const precioDeseado = targetPrices[productID];
+    const desiredPrice = targetPrices[productID];
 
-    if (!precioDeseado) {
+    if (!desiredPrice) {
       setModalState({
         isOpen: true,
         title: "Campo vacío",
@@ -72,10 +72,10 @@ export default function ResultsGrid({ products = [], isLoading = false, emptyTit
       });
       return;
     }
-    const precioFloat = parseFloat(precioDeseado);
+    const floatPrice = parseFloat(desiredPrice);
 
     // Check if valid number
-    if (isNaN(precioFloat) || precioFloat < 0) {
+    if (isNaN(floatPrice) || floatPrice < 0) {
       setModalState({
         isOpen: true,
         title: "Precio inválido",
@@ -92,7 +92,7 @@ export default function ResultsGrid({ products = [], isLoading = false, emptyTit
         credentials: "include",
         body: JSON.stringify({
           product_id: productID,
-          target_price: precioFloat
+          target_price: floatPrice
         }),
       });
 

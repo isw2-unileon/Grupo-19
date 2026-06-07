@@ -63,7 +63,7 @@ func EvaluatePriceDropAndNotify(productID uint, currentPrice float64, oldPrice f
 
 			// We create the record in the database
 			if err := database.DB.Create(&notification).Error; err != nil {
-				fmt.Printf("Error al generar alerta para usuario %d en producto %d: %v\n", track.UserID, productID, err)
+				fmt.Printf("Error generating alert for user %d in product %d: %v\n", track.UserID, productID, err)
 			}
 		}
 	}

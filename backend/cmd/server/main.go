@@ -41,10 +41,10 @@ func main() {
 		&models.Notification{},
 	)
 	if err != nil {
-		logger.Error("Error al migrar la base de datos", "error", err)
+		logger.Error("Error migrating database", "error", err)
 		os.Exit(1)
 	}
-	slog.Info("Tablas sincronizadas correctamente en PostgreSQL")
+	slog.Info("Tables synchronized correctly in PostgreSQL")
 
 	// 3. Web service configuration
 	gin.SetMode(cfg.GinMode)
@@ -73,32 +73,32 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
 
-	// --- ENRUTAMIENTO GENERAL DE LA API ---
+	// GENERAL API ROUTING
 	api := r.Group("/api")
 	api.GET("/hello", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "Hello from the API"})
 	})
 
-	// Rutas Públicas (No requieren login)
+	// Public Routes (Login not required)
 	api.POST("/login", auth.LoginHandler)
 	api.POST("/logout", auth.LogoutHandler)
 	api.POST("/register", auth.RegisterHandler)
 
-	// Rutas Protegidas por JWT
+	// JWT Protected Routes
 	protected := api.Group("/")
 	protected.Use(auth.AuthMiddleware())
 
-	// Endpoints de configuración del perfil de usuario
+	// User profile configuration endpoints
 	protected.GET("/user/profile", auth.GetProfileHandler)
 	protected.PUT("/user/profile", auth.UpdateProfileHandler)
 	protected.PUT("/user/profile/password", auth.UpdatePasswordHandler)
 
-	// Rutas del tracker
+	// Tracker routes
 	protected.POST("/track", producthandlers.AddProduct)
 	protected.GET("/products/search", producthandlers.SearchProducts)
 	protected.POST("/tracking", producthandlers.UpdateTracking)
 
-	// Centro de Notificaciones
+	// Notification Center
 	protected.GET("/user/notifications", notificationHandlers.GetUserNotifications)
 	protected.PATCH("/user/notifications/:id", notificationHandlers.MarkNotificationAsRead)
 	protected.DELETE("/user/notifications/:id", notificationHandlers.DeleteNotification)

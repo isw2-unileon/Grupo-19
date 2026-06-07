@@ -26,19 +26,19 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: "#fafafa",
     fontFamily: "sans-serif",
     display: "flex",
-    flexDirection: "column", // Para organizar los elementos de arriba a abajo
+    flexDirection: "column", // To organize the elements from top to bottom
   },
   searchContainer: {
     display: "flex",
     justifyContent: "center",
     marginBottom: "60px",
-    padding: "40px 80px 0 80px", // Márgenes interiores aplicados aquí
+    padding: "40px 80px 0 80px", // Inside margins applied
   },
   resultsContainer: {
     maxWidth: "1100px",
     margin: "0 auto",
     width: "100%",
     padding: "0 80px 40px 80px",
-    flex: 1, // Obliga al contenedor central a expandirse y empujar el footer hacia el fondo
+    flex: 1, // Forces the central container to expand and push the footer towards the back
   },
 };

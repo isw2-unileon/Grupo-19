@@ -31,14 +31,14 @@ func UpdateTracking(c *gin.Context) {
 		return
 	}
 
-	usuarioID := userIDContext.(uint)
+	userID := userIDContext.(uint)
 
 	var tracking models.Tracking
-	err := database.DB.Where("user_id = ? AND product_id = ?", usuarioID, req.ProductID).First(&tracking).Error
+	err := database.DB.Where("user_id = ? AND product_id = ?", userID, req.ProductID).First(&tracking).Error
 
 	if err != nil {
 		tracking = models.Tracking{
-			UserID:             usuarioID,
+			UserID:             userID,
 			ProductID:          req.ProductID,
 			NotifyPriceChanges: true,
 			NotifyTargetPrice:  req.TargetPrice,
@@ -48,7 +48,7 @@ func UpdateTracking(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al crear la alerta de precio"})
 			return
 		}
-		_ = updateUserSavedProducts(usuarioID, req.ProductID, true)
+		_ = updateUserSavedProducts(userID, req.ProductID, true)
 	} else {
 		tracking.NotifyTargetPrice = req.TargetPrice
 		tracking.NotifyPriceChanges = true
@@ -69,11 +69,11 @@ func CheckTracking(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Usuario no autenticado"})
 		return
 	}
-	usuarioID := userIDContext.(uint)
+	userID := userIDContext.(uint)
 	productID := c.Param("id")
 
 	var tracking models.Tracking
-	err := database.DB.Where("user_id = ? AND product_id = ?", usuarioID, productID).First(&tracking).Error
+	err := database.DB.Where("user_id = ? AND product_id = ?", userID, productID).First(&tracking).Error
 
 	isFollowing := err == nil
 
@@ -86,7 +86,7 @@ func CheckTracking(c *gin.Context) {
 // UnfollowProduct deletes a product from the user's tracking list
 func UnfollowProduct(c *gin.Context) {
 	userIDContext, _ := c.Get("userID")
-	usuarioID := userIDContext.(uint)
+	userID := userIDContext.(uint)
 	productIDStr := c.Param("id")
 
 	productID64, err := strconv.ParseUint(productIDStr, 10, 32)
@@ -97,12 +97,12 @@ func UnfollowProduct(c *gin.Context) {
 
 	productID := uint(productID64)
 
-	if err := database.DB.Where("user_id = ? AND product_id = ?", usuarioID, productID).Delete(&models.Tracking{}).Error; err != nil {
+	if err := database.DB.Where("user_id = ? AND product_id = ?", userID, productID).Delete(&models.Tracking{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al dejar de seguir"})
 		return
 	}
 
-	_ = updateUserSavedProducts(usuarioID, productID, false)
+	_ = updateUserSavedProducts(userID, productID, false)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Producto eliminado de tus seguimientos"})
 }
@@ -114,7 +114,7 @@ func updateUserSavedProducts(userID uint, productID uint, add bool) error {
 	}
 
 	if add {
-		// Añadir si no existe
+		// Add if it doesn't exist
 		for _, id := range user.SavedProducts {
 			if id == int64(productID) {
 				return nil
@@ -122,7 +122,7 @@ func updateUserSavedProducts(userID uint, productID uint, add bool) error {
 		}
 		user.SavedProducts = append(user.SavedProducts, int64(productID))
 	} else {
-		// Eliminar
+		// Eliminate
 		newArray := []int64{}
 		for _, id := range user.SavedProducts {
 			if id != int64(productID) {
