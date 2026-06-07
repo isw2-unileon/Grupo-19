@@ -1,88 +1,99 @@
-# 📈 Rastreador de Precios - Grupo 19
+# 📈 **Price Tracker - Group 19**
 
-Aplicación full-stack para el seguimiento de precios. Este proyecto utiliza un entorno unificado basado en Docker para garantizar que todos los desarrolladores trabajen con la misma configuración sin necesidad de instalar dependencias locales complejas.
+Full-stack application for price tracking. This project uses a unified Docker-based environment to ensure that all developers work with the same configuration without the need to install complex local dependencies.
 
-## 🛠 Tecnologías
+## 🛠 Technologies
 
 *   **Backend:** Go (Framework Gin) + GORM
 *   **Frontend:** React + TypeScript + Vite
-*   **Base de Datos:** PostgreSQL
-*   **Infraestructura:** Docker & Docker Compose
-
+*   **Database:** PostgreSQL
+*   **Infrastructure:** Docker & Docker Compose
 ---
 
-## 🚀 Requisitos Previos
+## 🚀 Prerequisites
 
-Para ejecutar este proyecto en tu máquina, **solo necesitas tener instalado**:
+To run this project on your machine, **you only need to have installed**:
 
 1.  [Git](https://git-scm.com/)
 2.  [Docker Desktop](https://www.docker.com/products/docker-desktop/) (o Docker Engine + Docker Compose)
 
-*Nota: No es necesario que instales Go, Node.js ni PostgreSQL en tu ordenador. Docker se encarga de todo.*
+*Note: You do not need to install Go, Node.js, or PostgreSQL on your computer. Docker takes care of everything.*
 
 ---
 
-## ⚙️ Instalación y Puesta en Marcha
+## ⚙️ **Installation and Setup**
 
-Sigue estos pasos para arrancar el proyecto por primera vez:
+Follow this steps to run the project for the first time:
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone <URL_DEL_REPOSITORIO>
-   cd Grupo-19
-   ```
+1. **Clone the repository:**
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd Grupo-19
+```
 
-2. **Levantar los contenedores:**
-   Ejecuta el siguiente comando en la raíz del proyecto. Esto descargará las imágenes necesarias, instalará las dependencias y creará la base de datos con sus tablas automáticamente.
-   ```bash
-   docker compose up --build
-   ```
+2. **Start the containers:**
+   Run the following command in the project root. This will download the necessary images, install dependencies, and automatically create the database with its tables.
+```bash
+docker compose up --build
+```
 
-3. **Verificación:**
-   El backend estará listo cuando veas estos mensajes en la terminal:
-   * `✅ PostgreSQL conexion established correctly!`
-   * `INFO Tablas sincronizadas correctamente en PostgreSQL`
+3. **Verification:**
+   The backend will be ready when you see these messages in the terminal:
+   * `✅ PostgreSQL connection established correctly!`
+   * `INFO Tables synchronized correctly in PostgreSQL`
 
 ---
 
-## 🔗 URLs de Acceso Local
+## 🔗 URLs for Local Access 
 
-Una vez que los contenedores estén corriendo, puedes acceder a los servicios en las siguientes direcciones:
+Once the containers are running, you can access the services at the following addresses:
 
-| Servicio | URL Local | Descripción |
+| Service | Local URL | Description |
 | :--- | :--- | :--- |
-| **Frontend** | [http://localhost:5173](http://localhost:5173) | Interfaz de usuario (Vite/React). |
-| **Backend API** | [http://localhost:8080/api/hello](http://localhost:8080/api/hello) | Endpoint de prueba del servidor Go. |
-| **Health Check**| [http://localhost:8080/health](http://localhost:8080/health) | Comprobación de estado del servidor. |
+| **Frontend** | [http://localhost:5173](http://localhost:5173) | User Interface (Vite/React). |
+| **Backend API** | [http://localhost:8080/api/hello](http://localhost:8080/api/hello) | Go server test endpoint. |
+| **Health Check**| [http://localhost:8080/health](http://localhost:8080/health) | Server status check. |
 
 ---
 
-## 💻 Guía de Desarrollo
+## 💻 Development guide
 
-El entorno está configurado con **Hot Reload**. Esto significa que no necesitas reiniciar Docker constantemente:
+The environment is configured with **Hot Reload**. This means you do not need to restart Docker constantly:
 
-*   **Frontend:** Si modificas cualquier archivo dentro de `frontend/src/`, el navegador se actualizará automáticamente.
-*   **Backend:** Si modificas cualquier archivo `.go` en `backend/`, la herramienta *Air* recompilará y reiniciará el servidor al instante.
+*   **Frontend:** If you modify any file inside `frontend/src/`, the browser will refresh automatically.
+*   **Backend:** If you modify any `.go` file in `backend/`, the *Air* tool will recompile and restart the server instantly.
 
-### Comandos Útiles
+### Useful Commands
 
-**Ver las tablas de la base de datos:**
-Para entrar a PostgreSQL y listar las tablas creadas (`\dt`), abre una nueva terminal y ejecuta:
+**See database tables:**
+To enter PostgreSQL and list the created tables (`\dt`), open a new terminal and run:
 ```bash
 docker compose exec db psql -U admin -d rastreador_precios -c "\dt"
 ```
 
-**Instalar nuevas dependencias en Go:**
-Si necesitas añadir una nueva librería al backend, **no uses** tu Go local. Pídeselo al contenedor para que actualice el `go.mod`:
+**Install new dependencies in Go:**
+If you need to add a new library to the backend, **do not use** your local Go. Ask the container to update the `go.mod`:
 ```bash
-docker compose exec backend go get <nombre-del-paquete>
+docker compose exec backend go get <package-name>
 ```
 
-**Instalar nuevas dependencias en Frontend (npm):**
-De igual manera, para instalar paquetes de Node:
+**Install new dependencies in Frontend (npm):**
+Similarly, to install Node packages:
 ```bash
-docker compose exec frontend npm install <nombre-del-paquete>
+docker compose exec frontend npm install <package-name>
 ```
 
----
-*Este README se irá actualizando a medida que se añadan nuevas funcionalidades, endpoints y guías de despliegue.*
+**Test Execution**
+To run the tests, navigate to the folder where they are located and run:
+```bash
+go test -v
+```
+
+## 📚 Technical Documentation
+
+All detailed documentation regarding architecture, data models, and design decisions is organized in the `/docs` directory. Click on the following links to read more:
+
+* 🏛️ **[System Architecture](./docs/arquitecture.md)**: Data flow and Client-Server layer diagram.
+* 💾 **[Data Models](./docs/data-models.md)**: Entity-Relationship diagram and PostgreSQL database dictionary.
+* 🧠 **[Design Decisions](./docs/design-decisions.md)**: Technical justification for the use of Go, React, and the Scraping strategy.
+* 📖 **[User Guide](./docs/user-guide.md)**: User manual and frequent troubleshooting.
