@@ -36,6 +36,9 @@ export default function Header() {
                 {/* Left: Logo */}
                 <div style={styles.logoContainer} onClick={() => navigate("/mainPage")}>
                     <img src={logoImage} alt="ProTracker Logo" style={styles.logoImg} />
+                    <span style={{ fontSize: "26px", fontWeight: "bold", color: "#1f2937", marginLeft: "16px", letterSpacing: "0.5px" }}>
+                        ProTracker
+                    </span>
                 </div>
 
                 {/* Right: Actions */}
