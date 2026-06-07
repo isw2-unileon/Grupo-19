@@ -109,6 +109,11 @@ func main() {
 	protected.GET("/user/saved-products", producthandlers.GetSavedProducts)
 	protected.GET("/products/:id/history", producthandlers.GetPriceHistory)
 
+	puertoRender := os.Getenv("PORT")
+	if puertoRender != "" {
+		cfg.Port = puertoRender
+	}
+
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
 		Handler:      r,
