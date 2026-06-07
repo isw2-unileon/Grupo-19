@@ -34,6 +34,7 @@ The code may fail due to page or connection blocking (Thanks Tebas)
 */
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"regexp"
@@ -54,6 +55,12 @@ type ProductData struct {
 
 // Extract create or update a Product given a targetURL for the product of any of the soported sites
 func Extract(targetURL string) (*ProductData, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("¡PANIC ATRAPADO EN EL SCRAPER!", "url", targetURL, "panic", r)
+		}
+	}()
+	slog.Info("Iniciando extracción", "url", targetURL)
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		return nil, err
