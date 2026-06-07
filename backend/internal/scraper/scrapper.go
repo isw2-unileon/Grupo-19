@@ -38,6 +38,7 @@ import (
 	"net/http/cookiejar"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -59,7 +60,8 @@ func Extract(targetURL string) (*ProductData, error) {
 	}
 
 	client := &http.Client{
-		Jar: jar,
+		Jar:     jar,
+		Timeout: 10 * time.Second,
 	}
 
 	req, err := http.NewRequest("GET", targetURL, nil)
